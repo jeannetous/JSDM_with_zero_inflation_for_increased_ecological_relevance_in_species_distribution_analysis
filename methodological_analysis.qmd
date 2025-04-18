@@ -1,0 +1,1332 @@
+---
+title: "ZIPLN-network analysis"
+format: html
+editor: visual
+---
+
+# General questions
+
+We aim at using the ZIPLN-network framework to answer the following questions:
+
+1.  Does accounting for the zero-inflation in the data improve the results of the model ? How so ?
+
+2.  Are the two datasets' distributions significantly different ?
+
+3.  How do the environmental covariates influence the results ? Which ones should we include ?
+
+4.  How robust are the different association to changes in the model (inclusion of different covariates, zero-inflation modelling...) ?
+
+5.  Does including sampling months / years change the results for the Northern Range dataset ?
+
+# Useful libraries & functions
+
+```{r loading_libraries}
+library(dplyr)
+library(PLNmodels)
+library(igraph)
+library(FactoMineR)
+library(ggplot2)
+library(Metrics)
+library(Hmsc)
+library(corrplot)
+set.seed(1)
+```
+
+```{r robustness}
+
+robustness = function(models, models_names = NULL,
+                      matrices_input = FALSE){
+  N <- length(models) ; res <- matrix(rep(0, N * N), nrow = N) ; diag(res) <- 1
+  for(i in 1:(N-1)){
+    if(!matrices_input){
+      mod1 <- models[[i]] ; net1   <- as.matrix(mod1$latent_network("partial_cor"))
+      diag(net1) <- 0
+    }else{net1 <- models[[i]]}
+    count1 <- sum(net1 != 0)
+    for(j in ((i + 1):N)){
+      if(!matrices_input){
+        mod2 <- models[[j]] ; net2   <- as.matrix(mod2$latent_network("partial_cor"))
+        diag(net2) <- 0
+      }else{net2 <- models[[j]]}
+      count2 <- sum(net2 != 0)
+      intersection <- sum(sign(net1) * sign(net2) == 1)
+      res[i, j]    <- round(intersection / count1, 2)
+      res[j, i]    <- round(intersection / count2, 2)
+    }
+  }
+  if(!is.null(models_names)){
+    rownames(res) <- models_names ; colnames(res) <- models_names
+  }
+  cat("M[i,j] gives the proportion of interactions contained in model i that are also in model j. \n")
+  return(res)
+}
+```
+
+```{r plot-network}
+plot_network = function(net             ,
+                        type = "partial_cor",            
+                        edge.color      = c("#F8766D", "#00BFC4"),
+                        remove.isolated = FALSE,
+                        node.labels     = NULL,
+                        layout          = layout_in_circle) {
+  G <-  graph_from_adjacency_matrix(net, mode = "undirected", weighted = TRUE, diag = FALSE)
+
+  if (!is.null(node.labels)) {
+    igraph::V(G)$label <- node.labels
+  } else {
+    igraph::V(G)$label <- colnames(net)
+  }
+  ## Nice nodes
+  V.deg <- degree(G)/sum(degree(G))
+  igraph::V(G)$label.cex <- V.deg / max(V.deg) + .5
+  igraph::V(G)$size <- V.deg * 100
+  igraph::V(G)$label.color <- rgb(0, 0, .2, .8)
+  igraph::V(G)$frame.color <- NA
+  ## Nice edges
+  igraph::E(G)$color <- ifelse(igraph::E(G)$weight > 0, edge.color[1], edge.color[2])
+  if (type == "support")
+    igraph::E(G)$width <- abs(igraph::E(G)$weight)
+  else
+    igraph::E(G)$width <- 15*abs(igraph::E(G)$weight)
+
+  if (remove.isolated) {
+    G <- delete.vertices(G, which(degree(G) == 0))
+  }
+  plot(G, layout = layout, font.size = 8)
+  invisible(G)
+}
+
+```
+
+# Data importation
+
+### Regional dataset
+
+```{r, loading regional dataset}
+load("REGIONAL_DATASET_COUNTS.Rdata")
+load("REGIONAL_DATASET_COVARIATES.Rdata")
+```
+
+```{r, formatting regional data for PLNmodels}
+regional_data <- prepare_data(counts     = REGIONAL_DATASET_COUNTS,
+                              covariates = REGIONAL_DATASET_COVARIATES)
+```
+
+### Northern Range dataset
+
+```{r, loading Northern Range dataset}
+load("NORTHERN_RANGE_DATASET_COUNTS.Rdata")
+load("NORTHERN_RANGE_DATASET_COVARIATES.Rdata")
+```
+
+```{r, formatting Northern Range data for PLNmodels}
+northern_range_data <- prepare_data(counts     = NORTHERN_RANGE_DATASET_COUNTS,
+                                    covariates = NORTHERN_RANGE_DATASET_COVARIATES)
+```
+
+# Data visualization
+
+We use log-scale heatmaps to visualize the data. \## Regional dataset
+
+```{r regional_heatmap}
+pheatmap::pheatmap(log(1 + regional_data$Abundance),
+                   treeheight_row = 0, treeheight_col = 0, show_rownames = FALSE)
+```
+
+## Northern Range dataset
+
+```{r NR_heatmap}
+pheatmap::pheatmap(log(1 + northern_range_data$Abundance),
+                   treeheight_row = 0, treeheight_col = 0, show_rownames = FALSE)
+```
+
+# Preparing the covariates
+
+Both datasets have the following environmental covariates in common: width, depth, temperature, oxygen level and pH. Given the results, we choose to keep the first three principal components.
+
+## PCA on the covariates
+
+### Regional dataset
+
+```{r standardizing_covariates_regional}
+regional_covar <- regional_data %>% select(c("WIDTHavg", "DEPTHavg",
+                                             "TEMPavg", "OXYGENavg",
+                                             "pHaverage"))
+regional_covar <- as.data.frame(scale(regional_covar))
+```
+
+```{r pca_regional}
+pca_regional <- PCA(regional_covar)
+print(pca_regional$eig)
+```
+
+Given the PCA results, the site indexed 40 seems to be an outlier. We remove it before further analysis.
+
+```{r}
+REGIONAL_DATASET_COUNTS     <- REGIONAL_DATASET_COUNTS[-c(40),]
+REGIONAL_DATASET_COVARIATES <- REGIONAL_DATASET_COVARIATES[-c(40),]
+regional_data <- prepare_data(counts     = REGIONAL_DATASET_COUNTS,
+                              covariates = REGIONAL_DATASET_COVARIATES)
+```
+
+```{r}
+pca_covar_regional <- data.frame("PC1" = unname(pca_regional$ind$coord[, 1]),
+                                 "PC2" = unname(pca_regional$ind$coord[, 2]),
+                                 "PC3" = unname(pca_regional$ind$coord[, 3]))
+pca_covar_regional <- pca_covar_regional[-c(40),]
+rownames(pca_covar_regional) <- NULL
+```
+
+```{r}
+regional_data_pc <- prepare_data(counts = REGIONAL_DATASET_COUNTS,
+                                 covariates = pca_covar_regional)
+```
+
+### Northern Range dataset
+
+```{r standardizing_covariates_nr}
+northern_range_covar <- northern_range_data %>%
+                        select(c("width", "depth", "temperature", "O2", "pH"))
+northern_range_covar <- as.data.frame(scale(northern_range_covar))
+```
+
+```{r pca_northern_range}
+pca_northern_range <- PCA(northern_range_covar)
+print(pca_northern_range$eig)
+```
+
+```{r}
+pca_covar_northern_range <- data.frame("PC1" = unname(pca_northern_range$ind$coord[, 1]),
+                                       "PC2" = unname(pca_northern_range$ind$coord[, 2]),
+                                       "PC3" = unname(pca_northern_range$ind$coord[, 3]))
+rownames(pca_covar_northern_range) <- rownames(NORTHERN_RANGE_DATASET_COUNTS)
+```
+
+```{r}
+northern_range_data_pc <- prepare_data(counts     = NORTHERN_RANGE_DATASET_COUNTS,
+                                       covariates = pca_covar_northern_range)
+```
+
+## Trying to get the altitude
+```{r}
+library(elevatr)
+library(sf)
+library(terra)
+```
+
+```{r}
+# point <- st_as_sf(data.frame(x = -61.31968, y = 10.70517),
+#                   coords = c("x", "y"), crs = 4326)
+# 
+# # Get elevation
+# elevation <- get_elev_point(point, src = "aws")
+# print(elevation)
+
+altitude <- unlist(lapply(1:304, F = function(i){
+  point <- st_as_sf(data.frame(x = northern_range_data$LONGITUDE[[i]], y = northern_range_data$LATITUDE[[i]]),
+                  coords = c("x", "y"), crs = 4326)
+  return(get_elev_point(point, src = "aws")$elevation)
+}))
+
+```
+
+```{r}
+get_elev_point(locations = mts, prj = ll_prj)
+```
+
+
+# PLN and ZIPLN (no network penalty) to compare the fitting qualities
+
+## PLN - PC1 + PC2
+
+### regional dataset
+
+```{r}
+regional_no_network <- PLN(Abundance ~ 1 + PC1 + PC2,
+                             data = regional_data_pc)
+```
+
+```{r}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_no_network$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+regional_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(regional_rmse)  
+```
+
+### NR dataset
+
+```{r}
+northern_range_no_network <- PLN(Abundance ~ 1 + PC1 + PC2,
+                                 data = northern_range_data_pc)
+```
+
+```{r}
+Y_real   <- northern_range_data_pc$Abundance
+Y_fitted <- northern_range_no_network$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+northern_range_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(northern_range_rmse)  
+```
+
+```{r}
+fitting_results <- data.frame("Model" = c("PLN_PC1_PC2"),
+                              "regional_RMSE" = c(round(regional_rmse, 3)),
+                              "northern_range_RMSE" = c(round(northern_range_rmse, 3)))
+```
+
+## ZIPLN - PC1 + PC2
+
+### regional dataset
+
+```{r}
+regional_no_network_ZI <- ZIPLN(Abundance ~ 1 + PC1 + PC2 | 1,
+                                data = regional_data_pc)
+```
+
+```{r}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+regional_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(regional_rmse)  
+```
+
+### NR dataset
+
+```{r}
+northern_range_no_network_ZI <- ZIPLN(Abundance ~ 1 + PC1 + PC2 | 1,
+                                      data = northern_range_data_pc)
+```
+
+```{r}
+Y_real   <- northern_range_data_pc$Abundance
+Y_fitted <- northern_range_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+northern_range_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(northern_range_rmse)  
+```
+
+```{r}
+fitting_results <- rbind(fitting_results, c("ZIPLN_PC1_PC2_ZIcol",
+                                            round(regional_rmse, 3),
+                                            round(northern_range_rmse, 3)))
+```
+
+## ZIPLN - Covariates effects in the ZI
+
+### ZI PC1
+
+#### regional dataset
+
+```{r}
+regional_no_network_ZI_PC1 <- ZIPLN(Abundance ~ 1 + PC1 + PC2 | 1 + PC1 ,
+                                data = regional_data_pc)
+```
+
+```{r}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+regional_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(regional_rmse)  
+```
+
+#### NR dataset
+
+```{r}
+northern_range_no_network_ZI <- ZIPLN(Abundance ~ 1 + PC1 + PC2  | 1 + PC1,
+                                      data = northern_range_data_pc)
+```
+
+```{r}
+Y_real   <- northern_range_data_pc$Abundance
+Y_fitted <- northern_range_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+northern_range_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(northern_range_rmse)  
+```
+
+```{r}
+fitting_results <- rbind(fitting_results, c("ZIPLN_PC1_PC2_ZIcolPC1",
+                                            round(regional_rmse, 3),
+                                            round(northern_range_rmse, 3)))
+```
+
+### ZI PC2
+
+#### regional dataset
+
+```{r}
+regional_no_network_ZI_PC1_PC2 <- ZIPLN(Abundance ~ 1 + PC1 + PC2 | 1 + PC1 + PC2,
+                                        data = regional_data_pc)
+```
+
+```{r}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+regional_rmse <- rmse(Y_real, Y_fitted)
+plot(Y_real, Y_fitted) ; print(regional_rmse)  
+```
+
+#### NR dataset
+
+```{r}
+# northern_range_no_network_ZI <- ZIPLN(Abundance ~ 1 + PC1 + PC2  | 1 + PC1 + PC2,
+#                                       data = northern_range_data_pc)
+```
+
+```{r}
+# Y_real   <- northern_range_data_pc$Abundance
+# Y_fitted <- northern_range_no_network_ZI$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+# northern_range_rmse <- rmse(Y_real, Y_fitted)
+# plot(Y_real, Y_fitted) ; print(northern_range_rmse)  
+northern_range_rmse <- NA
+```
+
+```{r}
+fitting_results <- rbind(fitting_results, c("ZIPLN_PC1_PC2_ZIcolPC1PC2",
+                                            round(regional_rmse, 3),
+                                            round(northern_range_rmse, 3)))
+```
+
+```{r}
+print(fitting_results)
+```
+
+# Running PLN-network (no zero-inflation)
+
+### Fitting the model
+
+#### Regional dataset
+
+```{r regional_model_no_ZI}
+regional_no_ZI <- PLNnetwork(Abundance ~ 1 + PC1 + PC2,
+                             data = regional_data_pc,
+                             control = PLNnetwork_param(min_ratio = 0.05,
+                                                        penalize_diagonal = FALSE))
+```
+
+```{r}
+# regional_no_ZI_StARS <- regional_no_ZI$getBestModel("StARS")
+regional_no_ZI_StARS <- regional_no_ZI$getModel(1.191822)
+```
+
+#### Northern Range dataset
+
+```{r northern_range_model_no_ZI}
+northern_range_no_ZI <- PLNnetwork(Abundance ~ 1 + PC1 + PC2,
+                                  data = northern_range_data_pc,
+                                  control = PLNnetwork_param(min_ratio = 0.05,
+                                                             penalize_diagonal = FALSE))
+```
+
+```{r}
+# northern_range_no_ZI_StARS <- northern_range_no_ZI$getBestModel("StARS")
+northern_range_no_ZI_StARS <- northern_range_no_ZI$getModel(0.6133228)
+```
+
+### Goodness of fit
+
+#### Regional dataset
+
+```{r regional_fit}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_no_ZI_StARS$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+plot(Y_real, Y_fitted)
+```
+
+```{r}
+print(rmse(Y_real, Y_fitted))
+```
+
+Focusing on the species with many 0s.
+
+```{r regional_fit_zeros}
+zero_threshold <- median(colSums(Y_real == 0))
+zero_species   <- names(which(colSums(Y_real == 0) > zero_threshold & colSums(Y_real) < 400))
+Y_zero         <- Y_real[, zero_species] ; Y_fitted_zero <- Y_fitted[, zero_species] 
+plot(Y_zero, Y_fitted_zero)
+```
+
+```{r}
+print(rmse(Y_zero, Y_fitted_zero))
+```
+
+#### Northern Range dataset
+
+```{r nr_fit}
+Y_real   <- northern_range_data$Abundance
+Y_fitted <- northern_range_no_ZI_StARS$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+plot(Y_real, Y_fitted)
+```
+
+```{r}
+print(rmse(Y_real, Y_fitted))
+```
+
+Focusing on the species with many 0s.
+
+```{r nr_fit_zeros}
+zero_threshold <- median(colSums(Y_real == 0))
+zero_species   <- names(which(colSums(Y_real == 0) > zero_threshold & colSums(Y_real) < 400))
+Y_zero         <- Y_real[, zero_species] ; Y_fitted_zero <- Y_fitted[, zero_species] 
+plot(Y_zero, Y_fitted_zero)
+```
+
+```{r}
+print(rmse(Y_zero, Y_fitted_zero))
+```
+
+### Resulting networks
+
+#### Regional dataset
+
+```{r}
+plot(regional_no_ZI_StARS)
+```
+
+With a 0 penalty we would have:
+
+```{r}
+plot(regional_no_ZI$getModel(0))
+```
+
+#### Northern Range dataset
+
+```{r}
+plot(northern_range_no_ZI_StARS)
+```
+
+With a 0 penalty we would have:
+
+```{r}
+plot(northern_range_no_ZI$getModel(0))
+```
+
+### Robustness of the networks to the addition of covariates
+
+#### Regional network
+
+```{r}
+plot(regional_no_ZI_StARS)
+```
+
+```{r}
+regional_no_ZI_PC3 <- PLNnetwork(Abundance ~ 1 + PC1 + PC2 + PC3,
+                                 data = regional_data_pc,
+                                 control = PLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# regional_no_ZI_PC3_StARS <- regional_no_ZI_PC3$getBestModel("StARS")
+regional_no_ZI_PC3_StARS <- regional_no_ZI_PC3$getModel(1.15029)
+plot(regional_no_ZI_PC3_StARS)
+```
+
+```{r}
+regional_no_ZI_LONGLAT <- PLNnetwork(Abundance ~ 1 + LONGLAT,
+                                 data = regional_data,
+                                 control = PLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# regional_no_ZI_LONGLAT_StARS <- regional_no_ZI_LONGLAT$getBestModel("StARS")
+regional_no_ZI_LONGLAT_StARS <- regional_no_ZI_LONGLAT$getModel(1.153061)
+plot(regional_no_ZI_LONGLAT_StARS)
+```
+
+```{r}
+robustness(c(regional_no_ZI_StARS,
+             regional_no_ZI_PC3_StARS,
+             regional_no_ZI_LONGLAT_StARS),
+           c("regional_no_ZI_StARS",
+             "regional_no_ZI_PC3_StARS",
+             "regional_no_ZI_LONGLAT_StARS" ))
+```
+
+#### Northern Range network
+
+```{r}
+plot(northern_range_no_ZI_StARS)
+```
+
+```{r}
+northern_range_no_ZI_PC3 <- PLNnetwork(Abundance ~ 1 + PC1 + PC2 + PC3,
+                                       data = northern_range_data_pc,
+                                       control = PLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# northern_range_no_ZI_PC3_StARS <- northern_range_no_ZI_PC3$getBestModel("StARS")
+northern_range_no_ZI_PC3_StARS <- northern_range_no_ZI_PC3$getModel(0.5743538)
+plot(northern_range_no_ZI_PC3_StARS)
+```
+
+```{r}
+northern_range_no_ZI_LONGLAT <- PLNnetwork(Abundance ~ 1 + LONGLAT,
+                                 data = northern_range_data,
+                                 control = PLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# northern_range_no_ZI_LONGLAT_StARS <- northern_range_no_ZI_LONGLAT$getBestModel("StARS")
+northern_range_no_ZI_LONGLAT_StARS <- northern_range_no_ZI_LONGLAT$getModel(0.6260702)
+plot(northern_range_no_ZI_LONGLAT_StARS)
+```
+
+```{r}
+robustness(c(northern_range_no_ZI_StARS,
+             northern_range_no_ZI_PC3_StARS,
+             northern_range_no_ZI_LONGLAT_StARS),
+           c("northern_range_no_ZI_StARS",
+             "northern_range_no_ZI_PC3_StARS",
+             "northern_range_no_ZI_LONGLAT_StARS" ))
+```
+
+# Running ZIPLN-network
+
+### Fitting the model
+
+#### Regional dataset
+
+```{r regional_model_ZI}
+regional_model<- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2,
+                              data = regional_data_pc,
+                              control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE),
+                               zi = "col")
+```
+
+```{r}
+# regional_model_StARS <- regional_model$getBestModel("StARS")
+regional_model_StARS <- regional_model$getModel(0.07299546)
+```
+
+#### Northern Range dataset
+
+```{r northern_range_model_ZI}
+northern_range_model <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2,
+                                     data = northern_range_data_pc,
+                                     control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                                 penalize_diagonal = FALSE),
+                                     zi = "col")
+```
+
+```{r}
+# northern_range_model_StARS <- northern_range_model$getBestModel("StARS")
+northern_range_model_StARS <- northern_range_model$getModel(0.08051953)
+```
+
+### Goodness of fit
+
+#### Regional dataset
+
+```{r regional_fit_ZI}
+Y_real   <- regional_data_pc$Abundance
+Y_fitted <- regional_model_StARS$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+plot(Y_real, Y_fitted)
+```
+
+```{r}
+print(rmse(Y_real, Y_fitted))
+```
+
+Focusing on the species with many 0s.
+
+```{r regional_fit_zeros_ZI}
+zero_threshold <- median(colSums(Y_real == 0))
+zero_species   <- names(which(colSums(Y_real == 0) > zero_threshold & colSums(Y_real) < 400))
+Y_zero         <- Y_real[, zero_species] ; Y_fitted_zero <- Y_fitted[, zero_species] 
+plot(Y_zero, Y_fitted_zero)
+```
+
+```{r}
+print(rmse(Y_zero, Y_fitted_zero))
+```
+
+#### Northern Range dataset
+
+```{r nr_fit_ZI}
+Y_real   <- northern_range_data$Abundance
+Y_fitted <- northern_range_model_StARS$fitted ; colnames(Y_fitted) <- colnames(Y_real)
+plot(Y_real, Y_fitted)
+```
+
+```{r}
+print(rmse(Y_real, Y_fitted))
+```
+
+Focusing on the species with many 0s.
+
+```{r nr_fit_zeros_ZI}
+zero_threshold <- median(colSums(Y_real == 0))
+zero_species   <- names(which(colSums(Y_real == 0) > zero_threshold & colSums(Y_real) < 400))
+Y_zero         <- Y_real[, zero_species] ; Y_fitted_zero <- Y_fitted[, zero_species] 
+plot(Y_zero, Y_fitted_zero)
+```
+
+```{r}
+print(rmse(Y_zero, Y_fitted_zero))
+```
+
+### Resulting networks
+
+#### Regional dataset
+
+```{r}
+plot(regional_model_StARS)
+```
+
+With a 0 penalty we would have:
+
+```{r}
+plot(regional_model$getModel(0))
+```
+
+Remark: we see that several associations are the same as those found with LONGLAT (Rhamquel - Coryriis, Poecreti - Anabhart, Sicypunc - Eleopiso).
+
+#### Northern Range dataset
+
+```{r}
+plot(northern_range_model_StARS)
+```
+
+Remark: again, several associations are the same as those found with LONGLAT (Hoplmala - Anabhart, Rhamquel - Anabhart, Poecreti - Andipulc...).
+
+With a 0 penalty we would have:
+
+```{r}
+plot(northern_range_model$getModel(0))
+```
+
+### Robustness of the networks to the addition of covariates
+
+#### Regional network
+
+```{r}
+plot(regional_model_StARS)
+```
+
+```{r}
+regional_PC3 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + PC3,
+                             data = regional_data_pc,
+                             control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE),
+                             zi = "col")
+# regional_PC3_StARS <- regional_PC3$getBestModel("StARS")
+regional_PC3_StARS <- regional_PC3$getModel(0.08177813)
+# plot(regional_PC3_StARS)
+```
+
+```{r}
+regional_LONGLAT <- ZIPLNnetwork(Abundance ~ 1 + LONGLAT,
+                                 data = regional_data,
+                                 control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE),
+                                 zi = "col")
+# regional_LONGLAT_StARS <- regional_LONGLAT$getBestModel("StARS")
+regional_LONGLAT_StARS <- regional_LONGLAT$getModel(0.06633124)
+plot(regional_LONGLAT_StARS)
+```
+
+```{r}
+regional_ziPC1 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 | 1 + PC1,
+                             data = regional_data_pc,
+                             control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# regional_ziPC1_StARS <- regional_ziPC1$getBestModel("StARS")
+regional_ziPC1_StARS <- regional_ziPC1$getModel(0.03697966)
+plot(regional_ziPC1_StARS)
+```
+
+```{r}
+regional_ziPC1PC2 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 | 1 + PC1 + PC2,
+                             data = regional_data_pc,
+                             control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# regional_ziPC1PC2_StARS <- regional_ziPC1PC2$getBestModel("StARS")
+regional_ziPC1PC2_StARS <- regional_ziPC1PC2$getModel(0.03828855)
+# plot(regional_ziPC1_StARS)
+```
+
+```{r}
+robustness(c(regional_model_StARS,
+             regional_PC3_StARS,
+             regional_LONGLAT_StARS,
+             regional_ziPC1_StARS,
+             regional_ziPC1PC2_StARS),
+           c("regional_StARS",
+             "regional_PC3_StARS",
+             "regional_LONGLAT_StARS",
+             "regional_ziPC1_StARS",
+             "regional_ziPC1PC2_StARS" ))
+```
+
+#### Northern Range network
+
+```{r}
+plot(northern_range_model_StARS)
+```
+
+```{r}
+# northern_range_PC3 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + PC3,
+#                              data = northern_range_data_pc,
+#                              control = ZIPLNnetwork_param(min_ratio = 0.05,
+#                                                             penalize_diagonal = FALSE),
+#                              zi = "col")
+# regional_PC3_StARS <- regional_PC3$getBestModel("StARS")
+# regional_PC3_StARS <- regional_PC3$getModel(0.08177813)
+# plot(regional_PC3_StARS)
+```
+
+```{r}
+northern_range_LONGLAT <- ZIPLNnetwork(Abundance ~ 1 + LONGLAT,
+                                               data = northern_range_data,
+                                               control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE),
+                                               zi = "col")
+# northern_range_LONGLAT_StARS <- northern_range_LONGLAT$getBestModel("StARS")
+northern_range_LONGLAT_StARS <- northern_range_LONGLAT$getModel(0.08978182)
+# plot(regional_LONGLAT_StARS)
+```
+
+```{r}
+northern_range_ziPC1 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 | 1 + PC1,
+                                     data = northern_range_data_pc,
+                                     control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                            penalize_diagonal = FALSE))
+# northern_range_ziPC1_StARS <- northern_range_ziPC1$getBestModel("StARS")
+northern_range_ziPC1_StARS <- northern_range_ziPC1$getModel(0.04591576)
+plot(northern_range_ziPC1_StARS)
+```
+
+```{r}
+# Error in if (parameters_converged | objective_converged)
+# northern_range_ziPC1PC2 <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 | 1 + PC1 + PC2,
+#                              data = northern_range_data_pc,
+#                              control = ZIPLNnetwork_param(min_ratio = 0.05,
+#                                                             penalize_diagonal = FALSE))
+# northern_range_ziPC1PC2_StARS <- northern_range_ziPC1PC2$getBestModel("StARS")
+# northern_range_ziPC1PC2_StARS   <- northern_range_ziPC1PC2$getModel(0.03828855)
+# plot(northern_range_ziPC1PC2_StARS)
+```
+
+```{r}
+robustness(c(northern_range_model_StARS,
+             northern_range_LONGLAT_StARS,
+             northern_range_ziPC1_StARS),
+           c("northern_range_StARS",
+             "northern_range_LONGLAT_StARS",
+             "northern_range_ziPC1_StARS"))
+```
+
+# Accounting for sampling date in the Northern Range dataset
+
+## Formatting date as appropriate covariates
+
+```{r}
+date_covar <- data.frame("Year"  = as.factor(NORTHERN_RANGE_DATASET_COVARIATES$YEAR),
+                         "Month" = as.factor(NORTHERN_RANGE_DATASET_COVARIATES$MONTH))
+northern_range_date_pc_covar  <- cbind(date_covar, pca_covar_northern_range)
+rownames(northern_range_date_pc_covar) <- rownames(NORTHERN_RANGE_DATASET_COVARIATES)
+northern_range_data_date_pc <- prepare_data(counts     = NORTHERN_RANGE_DATASET_COUNTS,
+                                            covariates = northern_range_date_pc_covar)
+```
+
+## Re-running PLN-network with the date covariates
+
+```{r}
+northern_range_no_ZI_model_year <- PLNnetwork(Abundance ~ 1 + PC1 + PC2 + Year,
+                                              data = northern_range_data_date_pc,
+                                              control = PLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE))
+# northern_range_no_ZI_model_year_StARS <- northern_range_no_ZI_model_year$getBestModel("StARS")
+northern_range_no_ZI_model_year_StARS <- northern_range_no_ZI_model_year$getModel(0.5421913)
+# plot(northern_range_no_ZI_model_year_StARS)
+```
+
+```{r}
+northern_range_no_ZI_model_year_month <- PLNnetwork(Abundance ~ 1 + PC1 + PC2 + Year +  Month,
+                                                    data = northern_range_data_date_pc,
+                                                    control = PLNnetwork_param(min_ratio = 0.05,
+                                                              penalize_diagonal = FALSE))
+# northern_range_no_ZI_model_year_month_StARS <- northern_range_no_ZI_model_year_month$getBestModel("StARS")
+northern_range_no_ZI_model_year_month_StARS <- northern_range_no_ZI_model_year_month$getModel(0.3764233)
+# plot(northern_range_model_year_month_StARS)
+```
+
+## Re-running ZIPLN-network with the date covariates
+
+```{r}
+northern_range_model_year <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + Year,
+                                          data = northern_range_data_date_pc,
+                                          control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE),
+                                          zi = "col")
+# northern_range_model_year_StARS <- northern_range_model_year$getBestModel("StARS")
+northern_range_model_year_StARS <- northern_range_model_year$getModel(0.07216102)
+plot(northern_range_model_year_StARS)
+```
+
+Remark: at first sight, it appears that adding the Year as a covariate does not significantly change the network structure.
+```{r}
+northern_range_model_year_ZIyear <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + Year | 1 + Year,
+                                          data = northern_range_data_date_pc,
+                                          control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE))
+# northern_range_model_year_ZIyear_StARS <- northern_range_model_year_ZIyear$getBestModel("StARS")
+northern_range_model_year_ZIyear_StARS <- northern_range_model_year_ZIyear$getModel(0.07185885)
+plot(northern_range_model_year_ZIyear_StARS)
+```
+
+
+
+```{r}
+# northern_range_model_month <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + Month,
+#                                           data = northern_range_data_date_pc,
+#                                           control = ZIPLNnetwork_param(min_ratio = 0.05,
+#                                                            penalize_diagonal = FALSE),
+#                                           zi = "col")
+# Error in if (parameters_converged | objective_converged) { : 
+# missing value where TRUE/FALSE needed
+```
+
+```{r}
+northern_range_model_year_month <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 + Year +  Month,
+                                               data = northern_range_data_date_pc,
+                                               control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE),
+                                               zi = "col")
+# northern_range_model_year_month_StARS <- northern_range_model_year_month$getBestModel("StARS")
+northern_range_model_year_month_StARS <- northern_range_model_year_month$getModel(0.05944257)
+plot(northern_range_model_year_month_StARS)
+```
+
+Remark: one significant change is the disappearing of the Rhamquel - Anabhart association. A few associations lose strength (Hoplamala - Rhamquel) while others seem stronger (Ancimara - Hyporobi).
+
+```{r}
+northern_range_model_ZImonth <- ZIPLNnetwork(Abundance ~ 1 + PC1 + PC2 | 1 +  Month,
+                                          data = northern_range_data_date_pc,
+                                          control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                           penalize_diagonal = FALSE))
+# northern_range_model_ZImonth_StARS <- northern_range_model_ZImonth$getBestModel("StARS")
+northern_range_model_ZImonth_StARS <- northern_range_model_ZImonth$getModel(0.08764195)
+plot(northern_range_model_ZImonth_StARS)
+```
+
+# Comparison of the networks with / without ZI
+
+```{r}
+robustness(c(regional_no_ZI_StARS,
+             regional_no_ZI_PC3_StARS,
+             regional_no_ZI_LONGLAT_StARS,
+             regional_model_StARS,
+             regional_PC3_StARS,
+             regional_LONGLAT_StARS,
+             regional_ziPC1_StARS,
+             regional_ziPC1PC2_StARS),
+           c("regional_no_ZI_StARS",
+             "regional_no_ZI_PC3_StARS",
+             "regional_no_ZI_LONGLAT_StARS",
+             "regional_StARS",
+             "regional_PC3_StARS",
+             "regional_LONGLAT_StARS",
+             "regional_ziPC1_StARS",
+             "regional_ziPC1PC2_StARS" ))
+```
+
+```{r}
+robustness(c(northern_range_no_ZI_StARS,
+             northern_range_no_ZI_LONGLAT_StARS,
+             northern_range_no_ZI_model_year_StARS,
+             northern_range_no_ZI_model_year_month_StARS,
+             northern_range_model_StARS,
+             northern_range_LONGLAT_StARS,
+             northern_range_ziPC1_StARS,
+             northern_range_model_year_StARS,
+             northern_range_model_year_month_StARS),
+           c("northern_range_no_ZI_StARS",
+             "northern_range_no_ZI_LONGLAT_StARS",
+             "northern_range_no_ZI_model_year_StARS",
+             "northern_range_no_ZI_model_year_month_StARS",
+             "northern_range_StARS",
+             "northern_range_LONGLAT_StARS",
+             "northern_range_ziPC1_StARS",
+             "northern_range_model_year_StARS",
+             "northern_range_model_year_month_StARS"))
+```
+
+# Comparison with Hmsc package
+```{r}
+Y_regional <- regional_data$Abundance
+Y_NR       <- northern_range_data$Abundance
+```
+
+## With LONGLAT
+### Regional data
+```{r}
+X_regional_LONGLAT    <- REGIONAL_DATASET_COVARIATES %>%  select(c("LONGLAT"))
+
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_regional)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_regional_LONGLAT = Hmsc(Y = Y_regional, XData = X_regional_LONGLAT, XFormula = ~LONGLAT,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_regional_LONGLAT  = sampleMcmc(m_regional_LONGLAT , thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_regional_LONGLAT )
+evaluateModelFit(hM = m_regional_LONGLAT , predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_regional_LONGLAT)
+supportLevel = 0.95
+Sigma_regional_LONGLAT = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_regional_LONGLAT, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_regional_LONGLAT $rLNames[1]), mar=c(0,0,1,0))
+```
+```{r}
+plot_network(Sigma_regional_LONGLAT * 0.1)
+```
+
+
+### Northern Range data
+```{r}
+X_NR_LONGLAT    <- northern_range_data %>%  select(c("LONGLAT"))
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_NR)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_NR_LONGLAT = Hmsc(Y = Y_NR, XData = X_NR_LONGLAT, XFormula = ~LONGLAT,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_NR_LONGLAT = sampleMcmc(m_NR_LONGLAT, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_NR_LONGLAT)
+evaluateModelFit(hM = m_NR_LONGLAT, predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_NR_LONGLAT)
+supportLevel = 0.95
+Sigma_NR_LONGLAT = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_NR_LONGLAT, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_NR_LONGLAT$rLNames[1]), mar=c(0,0,1,0))
+```
+
+
+```{r}
+plot_network(Sigma_NR_LONGLAT*0.1)
+```
+
+
+## With PC1 + PC1
+### Regional data
+```{r}
+X_regional_PC1_PC2    <- regional_data_pc %>%  select(c("PC1", "PC2"))
+
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_regional)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_regional_PC1_PC2 = Hmsc(Y = Y_regional, XData = X_regional_PC1_PC2, XFormula = ~ PC1 + PC2,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_regional_PC1_PC2  = sampleMcmc(m_regional_PC1_PC2, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_regional_PC1_PC2 )
+evaluateModelFit(hM = m_regional_PC1_PC2 , predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_regional_PC1_PC2)
+supportLevel = 0.95
+Sigma_regional_PC1_PC2 = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_regional_PC1_PC2, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_regional_LONGLAT $rLNames[1]), mar=c(0,0,1,0))
+```
+
+```{r}
+plot_network(Sigma_regional_PC1_PC2 * 0.1)
+```
+
+
+### Northern Range data
+```{r}
+X_NR_PC1_PC2    <- northern_range_data_pc %>%  select(c("PC1", "PC2"))
+
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_NR)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_NR_PC1_PC2 = Hmsc(Y = Y_NR, XData = X_NR_PC1_PC2, XFormula = ~PC1 + PC2,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_NR_PC1_PC2 = sampleMcmc(m_NR_PC1_PC2, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_NR_PC1_PC2)
+evaluateModelFit(hM = m_NR_PC1_PC2, predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_NR_PC1_PC2)
+supportLevel = 0.95
+Sigma_NR_PC1_PC2 = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_NR_PC1_PC2, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_NR_PC1_PC2$rLNames[1]), mar=c(0,0,1,0))
+```
+
+```{r}
+plot_network(Sigma_NR_PC1_PC2 * 0.1)
+```
+
+
+
+## With PC1 + PC2 + dates
+### Just year
+```{r}
+X_NR_PC1_PC2_year    <- northern_range_data_date_pc %>%  select(c("PC1", "PC2", "Year"))
+
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_NR)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_NR_PC1_PC2_year = Hmsc(Y = Y_NR, XData = X_NR_PC1_PC2_year, XFormula = ~PC1 + PC2 + Year,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_NR_PC1_PC2_year = sampleMcmc(m_NR_PC1_PC2_year, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+
+```{r}
+preds = computePredictedValues(m_NR_PC1_PC2_year)
+evaluateModelFit(hM = m_NR_PC1_PC2_year, predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_NR_PC1_PC2_year)
+supportLevel = 0.95
+Sigma_NR_PC1_PC2_Year = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_NR_PC1_PC2_Year, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_NR_PC1_PC2_year$rLNames[1]), mar=c(0,0,1,0))
+```
+
+```{r}
+plot_network(Sigma_NR_PC1_PC2_Year*0.1)
+```
+
+
+
+### Just month
+```{r}
+X_NR_PC1_PC2_month     <- northern_range_data_date_pc %>%  select(c("PC1", "PC2", "Month"))
+
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_NR)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_NR_PC1_PC2_month = Hmsc(Y = Y_NR, XData = X_NR_PC1_PC2_month, XFormula = ~ PC1 + PC2 + Month,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_NR_PC1_PC2_month = sampleMcmc(m_NR_PC1_PC2_month, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_NR_PC1_PC2_month)
+evaluateModelFit(hM = m_NR_PC1_PC2_month, predY = preds)
+```
+
+
+```{r}
+OmegaCor = computeAssociations(m_NR_PC1_PC2_month)
+supportLevel = 0.95
+Sigma_NR_PC1_PC2_Month = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_NR_PC1_PC2_Month, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_NR_PC1_PC2_month$rLNames[1]), mar=c(0,0,1,0))
+```
+
+```{r}
+# Omega <- solve(Sigma_NR_PC1_PC2_Month)
+# partial_corr <- - Omega / tcrossprod(sqrt(diag(Omega))); diag(partial_corr) <- 1
+# plot_network(partial_corr)
+plot_network(Sigma_NR_PC1_PC2_Month * 0.1)
+```
+
+
+
+### Year + Month
+```{r}
+X_NR_PC1_PC2_year_month     <- northern_range_data_date_pc %>%  select(c("PC1", "PC2", "Year", "Month"))
+nChains = 2
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+n = nrow(Y_NR)
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m_NR_PC1_PC2_year_month = Hmsc(Y = Y_NR, XData = X_NR_PC1_PC2_year_month, XFormula = ~ PC1 + PC2 + Year + Month,
+studyDesign = studyDesign, ranLevels = list(sample = rL), distr = "lognormal poisson")
+m_NR_PC1_PC2_year_month = sampleMcmc(m_NR_PC1_PC2_year_month, thin = thin, samples = samples, transient = transient,
+nChains = nChains, nParallel = nChains, verbose = verbose)
+```
+
+```{r}
+preds = computePredictedValues(m_NR_PC1_PC2_year_month)
+evaluateModelFit(hM = m_NR_PC1_PC2_year_month, predY = preds)
+```
+
+```{r}
+OmegaCor = computeAssociations(m_NR_PC1_PC2_year_month)
+supportLevel = 0.95
+Sigma_NR_PC1_PC2_Year_Month = ((OmegaCor[[1]]$support>supportLevel)
++ (OmegaCor[[1]]$support<(1-supportLevel))>0)*OmegaCor[[1]]$mean
+corrplot(Sigma_NR_PC1_PC2_Year_Month, method = "color",
+col = colorRampPalette(c("blue","white","red"))(200),
+title = paste("random effect level:", m_NR_PC1_PC2_year_month$rLNames[1]), mar=c(0,0,1,0))
+```
+
+```{r}
+plot_network(Sigma_NR_PC1_PC2_Year_Month*0.1)
+```
+
+
+
+## Comparing the HMSC networks together
+### Regional network
+```{r}
+res <- robustness(list(Sigma_regional_LONGLAT,
+                    Sigma_regional_PC1_PC2),
+                  c("Sigma_regional_LONGLAT",
+                    "Sigma_regional_PC1_PC2"),
+                  matrices_input = TRUE
+                  )
+print(res)
+```
+
+### Northern Range network
+```{r}
+res <- robustness(list(Sigma_NR_LONGLAT,
+                    Sigma_NR_PC1_PC2,
+                    Sigma_NR_PC1_PC2_Year,
+                    Sigma_NR_PC1_PC2_Month,
+                    Sigma_NR_PC1_PC2_Year_Month),
+                  c("Sigma_NR_LONGLAT",
+                    "Sigma_NR_PC1_PC2",
+                    "Sigma_NR_PC1_PC2_Year",
+                    "Sigma_NR_PC1_PC2_Month",
+                    "Sigma_NR_PC1_PC2_Year_Month"),
+                  matrices_input = TRUE
+                  )
+print(res)
+```
+
+## Comparing the HMSC networks with the PLN ones
+### Regional network
+```{r}
+res <- robustness(list(Sigma_regional_LONGLAT,
+                       Sigma_regional_PC1_PC2,
+                       as.matrix(regional_no_ZI_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_no_ZI_PC3_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_no_ZI_LONGLAT_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_model_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_PC3_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_LONGLAT_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_ziPC1_StARS$latent_network("partial_cor")),
+                       as.matrix(regional_ziPC1PC2_StARS$latent_network("partial_cor"))),
+                  c("HMSC_Sigma_regional_LONGLAT",
+                    "HMSC_Sigma_regional_PC1_PC2",
+                    "regional_no_ZI_StARS",
+                    "regional_no_ZI_PC3_StARS",
+                    "regional_no_ZI_LONGLAT_StARS",
+                    "regional_model_StARS",
+                    "regional_PC3_StARS",
+                    "regional_LONGLAT_StARS",
+                    "regional_ziPC1_StARS",
+                    "regional_ziPC1PC2_StARS"),
+                  matrices_input = TRUE
+                  )
+print(res)
+```
+
+### Northern Range network
+```{r}
+res <- robustness(list(Sigma_NR_LONGLAT,
+                       Sigma_NR_PC1_PC2,
+                       Sigma_NR_PC1_PC2_Year,
+                       Sigma_NR_PC1_PC2_Month,
+                       Sigma_NR_PC1_PC2_Year_Month,
+                       as.matrix(northern_range_no_ZI_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_no_ZI_LONGLAT_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_no_ZI_model_year_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_no_ZI_model_year_month_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_model_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_LONGLAT_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_ziPC1_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_model_year_StARS$latent_network("partial_cor")),
+                       as.matrix(northern_range_model_year_month_StARS$latent_network("partial_cor"))),
+                  c("HSMC_Sigma_NR_LONGLAT",
+                    "HSMC_Sigma_NR_PC1_PC2",
+                    "HSMC_Sigma_NR_PC1_PC2_Year",
+                    "HSMC_Sigma_NR_PC1_PC2_Month",
+                    "HSMC_Sigma_NR_PC1_PC2_Year_Month",
+                    "northern_range_no_ZI_StARS",
+                    "northern_range_no_ZI_LONGLAT_StARS",
+                    "northern_range_no_ZI_model_year_StARS",
+                    "northern_range_no_ZI_model_year_month_StARS",
+                    "northern_range_model_StARS",
+                    "northern_range_LONGLAT_StARS",
+                    "northern_range_ziPC1_StARS",
+                    "northern_range_model_year_StARS",
+                    "northern_range_model_year_month_StARS"),
+                  matrices_input = TRUE
+                  )
+
+            
+print(res)
+```
