@@ -5,169 +5,534 @@ format: html
 editor: visual
 ---
 
-## Useful libraries & functions
+# Useful libraries & functions
 
-PLNmodels version should be 1.2.1 or higher.
+PLNmodels version should be 1.2.2 or higher.
 
 ```{r, loading libraries}
-library(dplyr)
-library(PLNmodels)
-library(igraph)
+# library(PLNmodels)
+library(Metrics)
+library(pheatmap)
+library(tidyverse)
+library(FactoMineR)
+library(factoextra)
+library(viridisLite)
 ```
 
-```{r, function to plot networks}
-plot_network = function(net             ,
-                        type            ,
-                        edge.color      = c("#F8766D", "#00BFC4"),
-                        remove.isolated = FALSE,
-                        node.labels     = NULL,
-                        layout          = layout_in_circle) {
-  G <-  graph_from_adjacency_matrix(net, mode = "undirected", weighted = TRUE, diag = FALSE)
 
-  if (!is.null(node.labels)) {
-    igraph::V(G)$label <- node.labels
-  } else {
-    igraph::V(G)$label <- colnames(net)
-  }
-  ## Nice nodes
-  V.deg <- degree(G)/sum(degree(G))
-  igraph::V(G)$label.cex <- V.deg / max(V.deg) + .5
-  igraph::V(G)$size <- V.deg * 100
-  igraph::V(G)$label.color <- rgb(0, 0, .2, .8)
-  igraph::V(G)$frame.color <- NA
-  ## Nice edges
-  igraph::E(G)$color <- ifelse(igraph::E(G)$weight > 0, edge.color[1], edge.color[2])
-  if (type == "support")
-    igraph::E(G)$width <- abs(igraph::E(G)$weight)
-  else
-    igraph::E(G)$width <- 15*abs(igraph::E(G)$weight)
+# Loading & formatting data
 
-  if (remove.isolated) {
-    G <- delete.vertices(G, which(degree(G) == 0))
+## Data loading
+
+```{r data-loading}
+load("data/NORTHERN_RANGE_DATASET_COUNTS.Rdata")
+NR_COUNTS <- NORTHERN_RANGE_DATASET_COUNTS %>% as_tibble()
+NR_COUNTS <- NR_COUNTS[, -21]
+
+load("data/NORTHERN_RANGE_DATASET_COVARIATES.Rdata")
+NR_COVARIATES <- 
+  NORTHERN_RANGE_DATASET_COVARIATES %>% as_tibble() %>% 
+  rename(latitude = LATITUDE, 
+         longitude = LONGITUDE, 
+         long_lat = LONGLAT,
+         coarse_gravel = coarse.gravel, # We do not include geographical coordinates here
+         fine_gravel = fine.gravel, 
+         leaf_litter = leaf.litter,
+         time_step = TimeStep, year = YEAR, month = MONTH, 
+         stream = STREAM, 
+         disturbance = DISTURBANCE, # human activity / binary categorical variable
+         altitude = ALTITUDE, 
+         season = SEASON) %>% 
+  mutate(
+    # season = case_match(time_step,
+    #   c(1, 5,  9, 13, 17) ~ "dry_start",
+    #   c(2, 6, 10, 14, 18) ~ "dry_end",
+    #   c(3, 7, 11, 15, 19) ~ "wet_start",
+    #   c(4, 8, 12, 16    ) ~ "wet_end"
+    # ),
+    season = as.character(season),
+    year = as.character(year),
+    disturbance = ifelse(disturbance == 1, "yes", "no")
+  ) %>% 
+  ## flow is not reliable
+  ## time_step + month are redundant with season + year
+  ## site is redudant with disturbance + stream
+  ## long_lat is the 1st PCA axis of latitude + longitude
+  dplyr::select(-latitude, -longitude, - long_lat, -site, -time_step,
+                -month, -flow) %>% # we remove geographical coordinates
+  relocate(altitude, width, depth, volume, garbage,
+           conductivity, O2, pH, temperature, turbidity, # site features
+           coarse_gravel, fine_gravel, leaf_litter, cobble, sand, silt, boulders, canopy, # soil
+           season, year, # sampling time
+           stream, disturbance # categorical: place + human activity
+         )
+# turbidity: ordinal variable indicating the level of turbidity
+# season:-> dry-start/dry-end, wet-start/wet-end, (january-> may: dry)
+quali_ind <- seq(ncol(NR_COVARIATES) - 3, ncol(NR_COVARIATES))
+
+```
+
+## Data visualization
+
+```{r}
+log_abundance <- log(1 + NR_DATA$Abundance)
+log_abundance_sorted <- log_abundance[order(NR_DATA$stream), ]
+
+
+color_palette <- paletteer_c("ggthemes::Orange-Gold", n = 30)
+palette_colors <- paletteer::paletteer_c("ggthemes::Orange-Gold", n = 29)  # 29 instead of 30
+color_palette <- c("white", palette_colors)
+max_val <- max(log_abundance_sorted, na.rm = TRUE)
+
+pheatmap(log_abundance_sorted,
+         color = color_palette,
+         cluster_rows = FALSE, cluster_cols = FALSE,
+         annotation_row = data.frame(Stream = NR_DATA$stream),
+         show_rownames = FALSE)
+```
+## Covariates preparation (PCA)
+
+```{r pca}
+nb_pc <- ncol(NR_COVARIATES) - 4
+NR_PCA <-
+  NR_COVARIATES %>%
+  PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
+
+NR_PCA_SCORES <- setNames(data.frame(NR_PCA$ind$coord), paste0("PC",1:nb_pc))
+```
+
+```{r data-formatting}
+NR_DATA <- prepare_data(
+  counts     = NR_COUNTS,
+  covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
+  )
+```
+
+
+
+
+# Running PLN-network
+
+```{r pln_network_pc1_pc2}
+model_PLN_pc1_pc2  <- PLNnetwork(Abundance ~ PC1 + PC2,  data = NR_DATA,
+                         control = PLNnetwork_param(min_ratio = 0.05,
+                                                    penalize_diagonal = FALSE))
+
+# model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc1$getBestModel("StARS", stability = 0.8)
+model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc2$getModel(0.2444352)
+print(model_PLN_pc1_pc2_StARS$BIC)
+
+model_PLN_pc1_pc2_StARS$plot_network()
+
+B_log_scale <- sign(model_PLN_pc1_pc2_StARS$model_par$B) * log1p(abs(model_PLN_pc1_pc2_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2")
+
+pheatmap(B_log_scale,color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r pln_network_pc1_pc1_disturbance}
+model_PLN_pc1_pc2_disturbance  <- PLNnetwork(Abundance ~ PC1 + PC2 + disturbance,  data = NR_DATA,
+                         control = PLNnetwork_param(min_ratio = 0.05,
+                                                    penalize_diagonal = FALSE))
+# model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
+model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getModel(0.2361045)
+print(model_PLN_pc1_pc2_disturbance_StARS$BIC)
+
+model_PLN_pc1_pc2_disturbance_StARS$plot_network()
+
+B_log_scale <- sign(model_PLN_pc1_pc2_disturbance_StARS$model_par$B) * log1p(abs(model_PLN_pc1_pc2_disturbance_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2", "disturbance")
+pheatmap(B_log_scale,
+         color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r pln_network}
+model_PLN  <- PLNnetwork(Abundance ~ PC1 + PC2 + stream + disturbance,  data = NR_DATA,
+                         control = PLNnetwork_param(min_ratio = 0.05,
+                                                    penalize_diagonal = FALSE))
+# model_PLN_StARS <- model_PLN$getBestModel("StARS", stability = 0.8)
+model_PLN_StARS <- model_PLN$getModel(0.06570186)
+print(model_PLN_StARS$BIC)
+
+model_PLN_StARS$plot_network()
+
+B_log_scale <- sign(model_PLN_StARS$model_par$B) * log1p(abs(model_PLN_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2", "stream_Caura", "stream_Lopinot",
+                           "stream_LowerAripo", "stream_Maracas",   "stream_Quare",
+                           "stream_Turure", "stream_UpperAripo", "disturbance")
+pheatmap(B_log_scale,
+         color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+# Running ZIPLN-network
+
+```{r zipln_network_pc1_pc2 }
+model_ZIPLN_pc1_pc2   <- ZIPLNnetwork(Abundance ~ PC1 + PC2 | 1,  data = NR_DATA,
+                         control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                      penalize_diagonal = FALSE))
+# model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getBestModel("StARS", stability = 0.8)
+model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getModel(0.05578001)
+print(model_ZIPLN_pc1_pc2_StARS$BIC)
+
+model_ZIPLN_pc1_pc2_StARS$plot_network()
+
+B_log_scale <- sign(model_ZIPLN_pc1_pc2_StARS$model_par$B) * log1p(abs(model_ZIPLN_pc1_pc2_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2")
+pheatmap(B_log_scale,
+         color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+
+pheatmap(model_ZIPLN_pc1_pc2_StARS$model_par$Pi,
+          color = paletteer::paletteer_c("viridis::cividis", 30),
+          cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r zipln_network_pc1_pc2_disturbance }
+model_ZIPLN_pc1_pc2_disturbance   <- ZIPLNnetwork(Abundance ~ PC1 + PC2 + disturbance | 1,  data = NR_DATA,
+                                                  control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                      penalize_diagonal = FALSE))
+# model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
+model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getModel(0.04622685)
+print(model_ZIPLN_pc1_pc2_disturbance_StARS$BIC)
+
+model_ZIPLN_pc1_pc2_disturbance_StARS$plot_network()
+
+B_log_scale <- sign(model_ZIPLN_pc1_pc2_disturbance_StARS$model_par$B) * log1p(abs(model_ZIPLN_pc1_pc2_disturbance_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2", "disturbance")
+pheatmap(B_log_scale,
+         color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+
+pheatmap(model_ZIPLN_pc1_pc2_disturbance_StARS$model_par$Pi,
+         color = paletteer::paletteer_c("viridis::cividis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r zipln_network}
+model_ZIPLN  <- ZIPLNnetwork(Abundance ~ PC1 + PC2 + disturbance | stream,  data = NR_DATA,
+                         control = ZIPLNnetwork_param(min_ratio = 0.05,
+                                                      penalize_diagonal = FALSE))
+# model_ZIPLN_StARS <- model_ZIPLN$getBestModel("StARS", stability = 0.8)
+model_ZIPLN_StARS <- model_ZIPLN$getModel(0.03317969)
+print(model_ZIPLN_StARS$BIC)
+
+model_ZIPLN_StARS$plot_network()
+
+B_log_scale <- sign(model_ZIPLN_StARS$model_par$B) * log1p(abs(model_ZIPLN_StARS$model_par$B))
+rownames(B_log_scale) <- c("Intercept", "PC1", "PC2", "disturbance")
+pheatmap(B_log_scale,
+         color = paletteer::paletteer_c("viridis::viridis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+
+pheatmap(model_ZIPLN_pc1_pc2_disturbance_StARS$model_par$Pi,
+         color = paletteer::paletteer_c("viridis::cividis", 30),
+         cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r}
+pi_proba <- model_ZIPLN_StARS$model_par$Pi 
+pi_proba_df <- as.data.frame(pi_proba)
+
+STREAM <- NR_DATA$stream
+# Assume M is a matrix and V is a vector of same length as nrow(M)
+
+# Convert to data frame
+
+pi_proba_df$STREAM <- STREAM
+
+# Keep one row per unique value of V
+pi_proba_unique <- pi_proba_df %>%
+  group_by(STREAM) %>%
+  slice(1) %>%
+  ungroup()
+
+# Extract matrix part
+pi_proba_final <- as.matrix(select(pi_proba_unique, -STREAM))
+
+# Set row names as the values of V
+rownames(pi_proba_final) <- pi_proba_unique$V
+
+# Plot the heatmap
+
+pheatmap(pi_proba_final,
+         color = rev(paletteer::paletteer_c("viridis::cividis", 30)),
+         cluster_rows = FALSE,
+         cluster_cols = FALSE,
+         show_rownames = TRUE)  # show V as row names
+
+
+```
+
+
+
+# Cross-validation measures for PLN-network and ZIPLN-network
+```{r cross-val-folds}
+K = 5
+set.seed(1)
+folds    = split(sample(1:nrow(covar_data)), rep(1:K, length = nrow(covar_data)))
+```
+
+```{r pln-cross-val-function}
+crossval <- function(formula, data, K = 5,
+                     folds    = split(sample(1:nrow(data)),
+                                      rep(1:K, length = nrow(data))),
+                     method   = c("PLN", "ZIPLN")
+  ) {
+    method <- match.arg(method)
+    Y     <- lapply(folds, function(fold) data$Abundance[fold, ])
+    Y_hat <- lapply(folds, function(test_set) {
+      # rep(0, length(test_set))
+      train_set <- setdiff(1:nrow(data), test_set)
+      model <- do.call(method, list(formula = eval(formula), data = data, subset = train_set))
+      predict(model, data[test_set, ], type = "response")
+    })
+    TP_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] == 0 & Y_hat[[k]] < 0.1)}))
+    TN_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] != 0 & Y_hat[[k]] > 0.1)}))
+    FP_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] != 0 & Y_hat[[k]] < 0.1)}))
+    FN_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] == 0 & Y_hat[[k]] > 0.1)}))
+    precision <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + FP_zero[[k]])}))
+    recall    <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + FN_zero[[k]])}))
+    F1_score  <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + .5 * (FP_zero[[k]] + FN_zero) )}))
+
+    # err <- map2_dbl(Y_hat, Y, function(y_hat, y) mean((y_hat - y)^2))
+    err <- map2_dbl(Y_hat, Y, function(y_hat, y) Metrics::rmse(y_hat, y))
+    attr(err, "folds") <- folds
+    return(list("err" = err,
+                "TP_zero" = TP_zero, "TN_zero" = TN_zero,
+                "FP_zero" = FP_zero, "FN_zero" = FN_zero,
+                "precision" = precision, "recall" = recall,
+                "F1_score" = F1_score))
   }
-  plot(G, layout = layout)
-  invisible(G)
+```
+
+## PLN-network cross-validation
+```{r}
+cv_pln_out      <- crossval(Abundance ~ 1 + PC1 + PC2 + stream + disturbance,
+                         data = NR_DATA)
+print(median(cv_pln_out$err))
+
+cv_pln_out_pc1_pc2      <- crossval(Abundance ~ 1 + PC1 + PC2,
+                                    data = NR_DATA, folds = folds)
+print(median(cv_pln_out_pc1_pc2$err))
+
+cv_pln_out_pc1_pc2_disturbance      <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance,
+                                    data = NR_DATA, folds = folds)
+print(median(cv_pln_out_pc1_pc2_disturbance$err))
+```
+
+## ZIPLN-network cross-validation
+```{r}
+cv_pln_out_ZI   <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance | stream ,
+                            data = NR_DATA, method = "ZIPLN")
+print(median(cv_pln_out_ZI$err))
+
+cv_pln_out_ZI_pc1_pc2   <- crossval(Abundance ~ 1 + PC1 + PC2 | 1 ,
+                            data = NR_DATA, method = "ZIPLN", folds = folds)
+print(median(cv_pln_out_ZI_pc1_pc2$err))
+
+cv_pln_out_ZI_pc1_pc2_disturbance   <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance | 1 ,
+                                    data = NR_DATA, method = "ZIPLN", folds = folds)
+print(median(cv_pln_out_ZI_pc1_pc2_disturbance$err))
+```
+
+
+# Baseline methods for comparisons
+
+```{r baselines-data-formatting}
+nb_pc <- ncol(NR_COVARIATES) - 4
+NR_PCA <-
+  NR_COVARIATES %>%
+  PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
+
+NR_PCA_SCORES <- setNames(data.frame(NR_PCA$ind$coord), paste0("PC", 1:nb_pc))
+
+covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
+NR_DATA <- prepare_data(
+  counts     = NR_COUNTS,
+  covariates = covariates
+)
+covar_data <- NR_DATA %>% select(c("PC1", "PC2", "disturbance", "stream"))
+```
+## BIC
+
+```{r get-BIC-function}
+get_BIC <- function(formula, covar_data, counts_data,
+                    method = c("poisson", "log_normal")){
+  method <- match.arg(method)
+  species   <- colnames(counts_data)
+
+  models <- lapply(species, function(S){
+                   Y    <- counts_data[, S]
+                   data <- cbind(covar_data, Y)
+                   colnames(data)[[length(colnames(data))]] <- "Abundance"
+                   if(method == "poisson"){
+                     glm(eval(formula), data = data,
+                         family = poisson(link = "log"))
+                   }else{
+                     log_data <- data
+                     log_data$Abundance <- log(1 + data$Abundance)
+                     glm(eval(formula), data = log_data,
+                         family = gaussian(link = "identity"))
+                   }
+  })
+
+  total_logLik <- sum(sapply(models, logLik))
+  total_k <- sum(sapply(models, function(m) length(coef(m))))
+  n_obs <- length(models[[1]]$y)  # assuming all same length
+  total_BIC <- 2 * total_logLik - total_k * log(n_obs)
+  return(total_BIC)
+}
+```
+
+```{r BIC-poisson}
+
+
+BIC_poisson <- get_BIC("Abundance ~ PC1 + PC2 + disturbance + stream", covar_data, NR_COUNTS,
+                       method = "poisson")
+print(BIC_poisson)
+
+BIC_poisson_pcs_dist <- get_BIC("Abundance ~ PC1 + PC2 + disturbance", covar_data, NR_COUNTS,
+                       method = "poisson")
+print(BIC_poisson_pcs_dist)
+
+BIC_poisson_pcs <- get_BIC("Abundance ~ PC1 + PC2", covar_data, NR_COUNTS,
+                       method = "poisson")
+print(BIC_poisson_pcs)
+```
+
+```{r BIC-log-normal}
+
+BIC_normal <- get_BIC("Abundance ~ PC1 + PC2 + disturbance + stream", covar_data, NR_COUNTS,
+                       method = "log_normal")
+print(BIC_poisson_pcs)
+
+BIC_normal_pcs_dist <- get_BIC("Abundance ~ PC1 + PC2 + disturbance", covar_data, NR_COUNTS,
+                       method = "log_normal")
+print(BIC_normal_pcs_dist)
+
+BIC_normal_pcs <- get_BIC("Abundance ~ PC1 + PC2", covar_data, NR_COUNTS,
+                           method = "log_normal")
+print(BIC_normal_pcs)
+```
+
+
+
+
+## Cross-validation
+
+
+```{r one-species-cross-val}
+crosspredict_one_species <- function(formula, folds, data,
+                                     method = c("poisson", "log_normal")){
+  method <- match.arg(method)
+
+  res <- lapply(folds, function(test_set) {
+                         train_set <- setdiff(1:nrow(data), test_set)
+                         if(method == "poisson"){
+                           tmp   <- data[train_set,]
+                           model <- glm(eval(formula),
+                                        data = tmp,
+                                        family = poisson(link = "log"))
+                           list(Y_hat = predict(model, data[test_set, ], type = "response"),
+                                Y_fit = model$fitted.values)
+                         }else{
+                           log_data <- data
+                           log_data$Abundance <- log(1 + data$Abundance)
+                           tmp   <- log_data[train_set,]
+                           model <- glm(eval(formula),
+                                        data = tmp,
+                                        family = gaussian(link = "identity"))
+                           list(Y_hat = exp(predict(model, data[test_set, ], type = "response")) - 1,
+                                Y_fit = model$fitted.values)
+                         }
+                         }
+                  )
+  Y_hat = lapply(res, function(x) x$Y_hat)
+  Y_fit = lapply(res, function(x) x$Y_fit)
+  return(list("Y_hat" = Y_hat, "Y_fit" = Y_fit))
+}
+```
+
+```{r overall-cross-val-baseline}
+
+cross_val_baseline <- function(formula, folds, covar_data, counts_data,
+                      method = c("poisson", "log_normal")){
+  method <- match.arg(method)
+
+  K <- length(folds)
+  all_Y_train <- lapply(1:5, f<- function(x) c())
+  all_Y_test     <- lapply(1:5, f<- function(x) c())
+  all_Y_fit <- lapply(1:5, f<- function(x) c())
+  all_Y_hat <- lapply(1:5, f<- function(x) c())
+  species   <- colnames(counts_data)
+
+  for(S in species){
+    Y    <- counts_data[, S]
+    data <- cbind(covar_data, Y)
+    colnames(data)[[length(colnames(data))]] <- "Abundance"
+    res <- crosspredict_one_species(formula, folds, data, method)
+    Y_hat <- res$Y_hat ; Y_fit <- res$Y_fit
+    for(k in 1:K){
+      train_set <- setdiff(1:nrow(counts_data), folds[[k]])
+      all_Y_train[[k]] <- rbind(all_Y_train[[k]], data$Abundance[train_set])
+      all_Y_test[[k]]  <- rbind(all_Y_test[[k]], data$Abundance[folds[[k]]])
+      all_Y_fit[[k]]   <- rbind(all_Y_fit[[k]], Y_fit[[k]])
+      all_Y_hat[[k]]   <- rbind(all_Y_hat[[k]], Y_hat[[k]])
+      # all_Y_hat[[k]] <- rbind(all_Y_hat[[k]], rep(0, length(folds[[k]])))
+    }
+  }
+
+  predict_err <- c() ; fit_err <- c()
+  for(k in 1:K){
+    predict_err <- c(predict_err, Metrics::rmse(all_Y_test[[k]], all_Y_hat[[k]] ))
+    fit_err     <- c(fit_err, Metrics::rmse(all_Y_train[[k]], all_Y_fit[[k]] ))
+  }
+  return(list("predict_err" = predict_err,
+              "fit_err"     = fit_err))
 }
 
 ```
 
-## Loading & formatting data
+```{r poisson-cross-val}
+cv_poisson_glm <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance + stream",
+                            folds, covar_data, NR_COUNTS, "poisson")
+print(median(cv_poisson_glm$fit_err))
+print(median(cv_poisson_glm$predict_err))
 
-### Regional dataset
 
-```{r, loading regional dataset}
-load("REGIONAL_DATASET_COUNTS.Rdata")
-load("REGIONAL_DATASET_COVARIATES.Rdata")
-```
+cv_poisson_glm_pcs <- cross_val_baseline("Abundance ~ PC1 + PC2",
+                            folds, covar_data, NR_COUNTS, "poisson")
+print(median(cv_poisson_glm_pcs$fit_err))
+print(median(cv_poisson_glm_pcs$predict_err))
 
-```{r, formatting regional data for PLNmodels}
-regional_data <- prepare_data(counts     = REGIONAL_DATASET_COUNTS,
-                              covariates = REGIONAL_DATASET_COVARIATES)
-```
 
-### Northern Range dataset
-
-```{r, loading Northern Range dataset}
-load("NORTHERN_RANGE_DATASET_COUNTS.Rdata")
-load("NORTHERN_RANGE_DATASET_COVARIATES.Rdata")
-```
-
-```{r, formatting Northern Range data for PLNmodels}
-northern_range_data <- prepare_data(counts     = NORTHERN_RANGE_DATASET_COUNTS,
-                                    covariates = NORTHERN_RANGE_DATASET_COVARIATES)
-```
-
-## Running the ZIPLN-network model
-
-We fix the seed for reproducibility.
-
-```{r, fixing the seed}
-set.seed(1)
-```
-
-### Regional dataset
-
-```{r, running ZIPLNnetwork on the regional data}
-regional_model <- ZIPLNnetwork(Abundance ~ 1 + LONGLAT, data = regional_data, control = ZIPLNnetwork_param(min_ratio = 0.001,  penalize_diagonal = FALSE), zi = "col")
+cv_poisson_glm_pcs_disturbance <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance",
+                                folds, covar_data, NR_COUNTS, "poisson")
+print(median(cv_poisson_glm_pcs_disturbance$fit_err))
+print(median(cv_poisson_glm_pcs_disturbance$predict_err))
 
 ```
 
-We select a penalty using stability selection process StARS. As it stability selection requires a long time to run, we memorize the corresponding penalty and later use it directly to access the model selected with StARS.
+```{r log-normal-cross-val}
+cv_log_normal  <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance + stream",
+                            folds, covar_data, NR_COUNTS, "log_normal")
+print(median(cv_log_normal$fit_err))
+print(median(cv_log_normal$predict_err))
 
-```{r, fixing regularization penalty with StARS - regional}
-# regional_model_StARS <- regional_model$getBestModel("StARS")
-regional_model_StARS <- regional_model$getModel(0.06950515) 
+cv_log_normal_pcs  <- cross_val_baseline("Abundance ~ PC1 + PC2",
+                            folds, covar_data, NR_COUNTS, "log_normal")
+print(median(cv_log_normal_pcs$fit_err))
+print(median(cv_log_normal_pcs$predict_err))
+
+cv_log_normal_pcs_disturbance  <- cross_val_baseline("Abundance ~ PC1 + PC2+ disturbance",
+                                folds, covar_data, NR_COUNTS, "log_normal")
+print(median(cv_log_normal_pcs_disturbance$fit_err))
+print(median(cv_log_normal_pcs_disturbance$predict_err))
 ```
 
-### Northern Range dataset
 
-```{r, running ZIPLNnetwork on the Northern Range data}
-northern_range_model <- ZIPLNnetwork(Abundance ~ 1 + LONGLAT, data = northern_range_data, control = ZIPLNnetwork_param(min_ratio = 0.001,  penalize_diagonal = FALSE), zi = "col")
 
-```
 
-We select a penalty using stability selection process StARS. As it stability selection requires a long time to run, we memorize the corresponding penalty and later use it directly to access the model selected with StARS.
-
-```{r, fixing regularization penalty with StARS - Northern Range}
-
-# northern_range_model_StARS <- northern_range_model$getBestModel("StARS")
-northern_range_model_StARS <- northern_range_model$getModel(0.08646393)
-```
-
-## Resulting networks
-
-We want to place species the datasets share in the same order for readibility.
-
-```{r, retrieving the lists of species to sort them}
-regional_species       <- colnames(regional_data$Abundance)
-northern_range_species <- colnames(northern_range_data$Abundance)
-intersecting_species   <- intersect(northern_range_species, regional_species)
-```
-
-### Regional network
-
-Sorting species names.
-
-```{r, sorting regional species}
-regional_sorted_species <- c(intersecting_species, regional_species[! regional_species %in% intersecting_species])
-```
-
-Extracting the association network from the model.
-
-```{r, sorting regional network}
-regional_network        <- as.matrix(regional_model_StARS$latent_network("partial_cor"))
-regional_sorted_indices <- match(regional_sorted_species, colnames(regional_network))
-regional_network        <- regional_network[regional_sorted_indices, regional_sorted_indices] 
-```
-
-```{r, plotting regional network}
-plot_network(regional_network,
-             type            = "partial_cor",
-             edge.color      = c("#F8766D", "#00BFC4"),
-             remove.isolated = FALSE,
-             node.labels     = NULL,
-             layout          = layout_in_circle)
-```
-
-### Northern Range network
-
-Sorting species names.
-
-```{r,  sorting Northern Range species}
-northern_range_sorted_species <- c(intersecting_species, northern_range_species[! northern_range_species %in% intersecting_species])
-```
-
-```{r, sorting Northern Range network}
-northern_range_network        <- as.matrix(northern_range_model_StARS$latent_network("partial_cor"))
-northern_range_sorted_indices <- match(northern_range_sorted_species, colnames(northern_range_network))
-northern_range_network        <- northern_range_network[northern_range_sorted_indices, northern_range_sorted_indices] 
-```
-
-```{r, plotting Northern Range network}
-plot_network(northern_range_network,
-             type            = "partial_cor",
-             edge.color      = c("#F8766D", "#00BFC4"),
-             remove.isolated = FALSE,
-             node.labels     = NULL,
-             layout          = layout_in_circle)
-```
