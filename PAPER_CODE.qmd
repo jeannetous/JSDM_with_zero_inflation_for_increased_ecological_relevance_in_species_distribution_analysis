@@ -19,7 +19,6 @@ library(factoextra)
 library(viridisLite)
 ```
 
-
 # Loading & formatting data
 
 ## Data loading
@@ -75,8 +74,8 @@ quali_ind <- seq(ncol(NR_COVARIATES) - 3, ncol(NR_COVARIATES))
 ## Data visualization
 
 ```{r}
-log_abundance <- log(1 + NR_DATA$Abundance)
-log_abundance_sorted <- log_abundance[order(NR_DATA$stream), ]
+log_abundance <- log(1 + NR_COUNTS)
+log_abundance_sorted <- log_abundance[order(NR_COVARIATES$stream), ]
 
 
 color_palette <- paletteer_c("ggthemes::Orange-Gold", n = 30)
@@ -87,9 +86,10 @@ max_val <- max(log_abundance_sorted, na.rm = TRUE)
 pheatmap(log_abundance_sorted,
          color = color_palette,
          cluster_rows = FALSE, cluster_cols = FALSE,
-         annotation_row = data.frame(Stream = NR_DATA$stream),
+         annotation_row = data.frame(Stream = NR_COVARIATES$stream),
          show_rownames = FALSE)
 ```
+
 ## Covariates preparation (PCA)
 
 ```{r pca}
@@ -107,9 +107,6 @@ NR_DATA <- prepare_data(
   covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
   )
 ```
-
-
-
 
 # Running PLN-network
 
@@ -266,13 +263,12 @@ pheatmap(pi_proba_final,
 
 ```
 
-
-
 # Cross-validation measures for PLN-network and ZIPLN-network
+
 ```{r cross-val-folds}
 K = 5
 set.seed(1)
-folds    = split(sample(1:nrow(covar_data)), rep(1:K, length = nrow(covar_data)))
+folds    = split(sample(1:nrow(NR_DATA)), rep(1:K, length = nrow(NR_DATA)))
 ```
 
 ```{r pln-cross-val-function}
@@ -309,6 +305,7 @@ crossval <- function(formula, data, K = 5,
 ```
 
 ## PLN-network cross-validation
+
 ```{r}
 cv_pln_out      <- crossval(Abundance ~ 1 + PC1 + PC2 + stream + disturbance,
                          data = NR_DATA)
@@ -324,6 +321,7 @@ print(median(cv_pln_out_pc1_pc2_disturbance$err))
 ```
 
 ## ZIPLN-network cross-validation
+
 ```{r}
 cv_pln_out_ZI   <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance | stream ,
                             data = NR_DATA, method = "ZIPLN")
@@ -337,7 +335,6 @@ cv_pln_out_ZI_pc1_pc2_disturbance   <- crossval(Abundance ~ 1 + PC1 + PC2 + dist
                                     data = NR_DATA, method = "ZIPLN", folds = folds)
 print(median(cv_pln_out_ZI_pc1_pc2_disturbance$err))
 ```
-
 
 # Baseline methods for comparisons
 
@@ -356,6 +353,7 @@ NR_DATA <- prepare_data(
 )
 covar_data <- NR_DATA %>% select(c("PC1", "PC2", "disturbance", "stream"))
 ```
+
 ## BIC
 
 ```{r get-BIC-function}
@@ -418,11 +416,7 @@ BIC_normal_pcs <- get_BIC("Abundance ~ PC1 + PC2", covar_data, NR_COUNTS,
 print(BIC_normal_pcs)
 ```
 
-
-
-
 ## Cross-validation
-
 
 ```{r one-species-cross-val}
 crosspredict_one_species <- function(formula, folds, data,
@@ -532,7 +526,3 @@ cv_log_normal_pcs_disturbance  <- cross_val_baseline("Abundance ~ PC1 + PC2+ dis
 print(median(cv_log_normal_pcs_disturbance$fit_err))
 print(median(cv_log_normal_pcs_disturbance$predict_err))
 ```
-
-
-
-
