@@ -1,6 +1,6 @@
 ---
-title: "Species association networks unveil scale effects in community assemblage mechanisms."
-author: "Jeanne Tous, Julien Chiquet"
+title: "A JSDM with zero-inflation to increase the ecological relevance of analyses of species distribution data."
+author: "Jeanne Tous, Julien Chiquet, Amy E. Deacon, Ada Fontrodona-Eslava, Douglas F. Fraser, Anne E. Magurran"
 format: html
 editor: visual
 ---
@@ -10,7 +10,7 @@ editor: visual
 PLNmodels version should be 1.2.2 or higher.
 
 ```{r, loading libraries}
-# library(PLNmodels)
+library(PLNmodels)
 library(Metrics)
 library(pheatmap)
 library(tidyverse)
@@ -78,7 +78,7 @@ log_abundance <- log(1 + NR_COUNTS)
 log_abundance_sorted <- log_abundance[order(NR_COVARIATES$stream), ]
 
 
-color_palette <- paletteer_c("ggthemes::Orange-Gold", n = 30)
+color_palette  <- paletteer::paletteer_c("ggthemes::Orange-Gold", n = 30)
 palette_colors <- paletteer::paletteer_c("ggthemes::Orange-Gold", n = 29)  # 29 instead of 30
 color_palette <- c("white", palette_colors)
 max_val <- max(log_abundance_sorted, na.rm = TRUE)
@@ -263,6 +263,7 @@ pheatmap(pi_proba_final,
 
 ```
 
+
 # Cross-validation measures for PLN-network and ZIPLN-network
 
 ```{r cross-val-folds}
@@ -340,6 +341,7 @@ print(median(cv_pln_out_ZI_pc1_pc2_disturbance$err))
 
 ```{r baselines-data-formatting}
 nb_pc <- ncol(NR_COVARIATES) - 4
+
 NR_PCA <-
   NR_COVARIATES %>%
   PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
@@ -351,7 +353,7 @@ NR_DATA <- prepare_data(
   counts     = NR_COUNTS,
   covariates = covariates
 )
-covar_data <- NR_DATA %>% select(c("PC1", "PC2", "disturbance", "stream"))
+covar_data <- NR_DATA %>% dplyr::select(c("PC1", "PC2", "disturbance", "stream"))
 ```
 
 ## BIC
