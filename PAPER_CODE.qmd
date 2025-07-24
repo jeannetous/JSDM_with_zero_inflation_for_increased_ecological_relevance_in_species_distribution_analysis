@@ -1,6 +1,6 @@
 ---
 title: "A JSDM with zero-inflation to increase the ecological relevance of analyses of species distribution data."
-author: "Jeanne Tous, Julien Chiquet, Amy E. Deacon, Ada Fontrodona-Eslava, Douglas F. Fraser, Anne E. Magurran"
+author: 
 format: html
 editor: visual
 ---
