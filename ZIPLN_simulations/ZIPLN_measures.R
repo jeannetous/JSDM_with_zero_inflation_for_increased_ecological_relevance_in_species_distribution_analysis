@@ -1,3 +1,5 @@
+library(Metrics)
+
 roc_metrics <- function(omega_true, omega_estimate){
 
   diag(omega_true) <- 0 ; diag(omega_estimate) <- 0
@@ -49,8 +51,8 @@ get_auc <- function(omega_true, PLN_model){
   return(auc(recall_unique, fallout_unique))
 }
 
-get_measures <- function(PLN_model, param, model_selection = NULL,
-                         stability = 0.8, fixed_blocks = FALSE) {
+get_measures <- function(PLN_model, params, model_selection = NULL,
+                         stability = 0.8, AUC = NULL) {
   # Select best sparsity level according to the chosen criterion
 
   if(is.numeric(model_selection)){
@@ -61,16 +63,15 @@ get_measures <- function(PLN_model, param, model_selection = NULL,
     }else{model <- PLN_model$getBestModel(model_selection)}
   }
 
-  # Get best permutation of Omega according to rmse when possible
   omega_hat <- model$model_par$Omega
 
   ## get metrics
+  if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
   res <- c(
     criterion = model_selection,
-    fixed_blocks = fixed_blocks,
-    AUC = get_auc(param$Omega, PLN_model),
-    rmse_fit = rmse(model$fitted, param$Y),
-    roc_metrics(param$Omega, omega_hat, best_perm)
+    AUC = get_auc(params$Omega, PLN_model),
+    rmse_fit = rmse(model$fitted, params$Y),
+    roc_metrics(params$Omega, omega_hat)
   )
   res
 }
