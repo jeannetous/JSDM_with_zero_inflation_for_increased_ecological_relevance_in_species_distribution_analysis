@@ -53,7 +53,8 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
 
 
 ################## Functions to add zero-inflation in the data #################
-generate_B0 <- function(X0, max_X0B0){
+# %% max_X0B0 controls for the column mean
+generate_B0_simple <- function(X0, max_X0B0 = -0.2){
   d <- ncol(X0)
   B0 <- matrix(rep(1, d*p), nrow=d)
   for(dim in 1:d){B0[dim,] = runif(p, min=-1, max = 1)}
@@ -63,18 +64,49 @@ generate_B0 <- function(X0, max_X0B0){
   B0 <- sweep(B0, 2, correcting_factors, `*`)
 }
 
-generate_zi_proba <- function(n, p, zi_type, X0 = NULL, B0 = -0.2){
-  if(zi-type == "sites"){
-    zi_proba <- 0
-  }
-  if(zi-type == "species"){
-    zi_proba <- 0
-  }
+# %% C gives the expected block values of X0 %*% B0
+# %% X0 and B0 are divided in the clusters given by row_clusters and col_clusters
+generate_X0_B0_cluster <- function(n, p, block_values,
+                                row_clusters = NULL, col_clusters = NULL) {
+
+  a <- nrow(block_values) ; b <- ncol(block_values)
+  X0 <- generate_discrete_X(n, 1, a)
+  X0_num <- model.matrix(~ . - 1, data = as.data.frame(X0))
+  if(is.null(row_clusters)) row_clusters <- sort(rep(1:a, length.out = n))
+  if(is.null(col_clusters)) col_clusters <- sort(rep(1:b, length.out = p))
+
+  M <- block_values[row_clusters, col_clusters]
+  M <- apply(M, c(1,2), f <- function(x){rnorm(1, x, 0.05)})
+
+  # Solve X0 %*% B0 = M for B0 using least squares
+  B0 <- solve(t(X0_num) %*% X0_num, t(X0_num) %*% M)
+  return(list("X0" = X0, "B0" = B0))
+}
+
+generate_zi_proba <- function(n, p, n_mode_proba = c(1), zi_mode_values = NULL,
+                              zi_type, X0 = NULL, B0 = NULL){
   if(zi-type == "covar"){
     X0B0 <- X0 %*% B0
     zi_proba <- exp(X0B0) / (1 + exp(X0B0))
+    zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(1, max(0, x)))
+  }else{
+    breaks <- cumsum(n_mode_proba)
+    if(zi-type == "sites"){groups <- cut(1:n, c(0, round(breaks * n)), labels = FALSE)}
+    if(zi-type == "species"){groups <- cut(1:p, c(0, round(breaks * p)), labels = FALSE)}
+    zi_proba_list <- unlist(lapply(1:length(n_mode_proba),
+                                   f <- function(i){unlist(lapply(rnorm(table(groups)[[i]],
+                                                                        mean = zi_mode_values, sd = 0.05),
+                                                                  f <- function(x){return(min(1, max(x, 0)))}))}))
+    if(zi-type == "sites"){zi_proba <- matrix(rep(zi_proba_list, p), nrow = n, byrow = F)}
+    if(zi-type == "species"){zi_proba <- matrix(rep(zi_proba_list, n), nrow = n, byrow = T)}
   }
   return(zi_proba)
+}
+
+add_zero_inflation <- function(Y, zi_proba){
+  Z <- apply(zi_proba, c(1, 2), f <- function(x) rbinom(1,1,x))
+  Y[Z == 1] <- 0
+  return(Y)
 }
 
 ##################### Functions to generate other parameters ###################
@@ -94,7 +126,7 @@ generate_X <- function(n, d, min_X = 0, max_X = 10){
 
 generate_discrete_X <- function(n, d, n_cat_values){
   X = matrix(rep(1, n * d), nrow=n)
-  for(dim in 1:d){X[,dim] = sample.int(n_cat_values[[dim]], n, replace = TRUE)}
+  for(dim in 1:d){X[,dim] = sort(rep(1:n_cat_values[[dim]], length.out = n))}
   X <- apply(X, c(1,2), as.character) # for X values to be treated as categorical variables
   return(X)
 }
