@@ -15,16 +15,17 @@ roc_metrics <- function(omega_true, omega_estimate){
   FP <- 0.5 * sum(nzero %in% true.zero)
   FN <- 0.5 * sum(zero %in%  true.nzero)
 
-  recall    <- TP/(TP + FN) ## also recall and sensitivity
-  fallout   <- FP/(FP + TN) ## also 1 - specificit
-  precision <- TP/(TP + FP) ## also PPR
+  recall    <- TP/(TP + FN)
+  fallout   <- FP/(FP + TN)
+  precision <- TP/(TP + FP)
+  f1_score <- 2 * (precision * recall) / (precision + recall)
   recall[TP + FN == 0] <- NA
   fallout[TN + FP == 0] <- NA
   precision[TP + FP == 0] <- NA
 
-  res <-  round(c(fallout,recall,precision), 3)
+  res <-  round(c(fallout,recall,precision, f1_score), 3)
   res[is.nan(res)] <- 0
-  names(res) <- c("fallout","recall", "precision")
+  names(res) <- c("fallout","recall", "precision", "f1_score")
 
   return(res)
 }
@@ -64,7 +65,6 @@ get_measures <- function(PLN_model, params, model_selection = NULL,
   }
 
   omega_hat <- model$model_par$Omega
-
   ## get metrics
   if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
   res <- c(

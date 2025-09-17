@@ -71,6 +71,7 @@ generate_X0_B0_cluster <- function(n, p, block_values,
 
   a <- nrow(block_values) ; b <- ncol(block_values)
   X0 <- generate_discrete_X(n, 1, a)
+  X0 <- apply(X0, c(1, 2), f <- function(x) LETTERS[as.numeric(x)])
   colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
   X0_num <- model.matrix(~ . - 1, data = as.data.frame(X0))
   if(is.null(row_clusters)) row_clusters <- sort(rep(1:a, length.out = n))
@@ -85,18 +86,19 @@ generate_X0_B0_cluster <- function(n, p, block_values,
 }
 
 generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
-                              n_mode_proba = c(1), zi_mode_values = NULL,
+                              n_mode_zi_proba = c(1), zi_mode_values = NULL,
                               X0 = NULL, B0 = NULL){
+  cat(zi_type)
   zi_type <- match.arg(zi_type)
   if(zi_type == "covar"){
     X0B0 <- X0 %*% B0
     zi_proba <- exp(X0B0) / (1 + exp(X0B0))
     zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(1, max(0, x)))
   }else{
-    breaks <- cumsum(n_mode_proba)
+    breaks <- cumsum(n_mode_zi_proba)
     if(zi_type == "sites"){groups <- cut(1:n, c(0, round(breaks * n)), labels = FALSE)}
     if(zi_type == "species"){groups <- cut(1:p, c(0, round(breaks * p)), labels = FALSE)}
-    zi_proba_list <- unlist(lapply(1:length(n_mode_proba),
+    zi_proba_list <- unlist(lapply(1:length(n_mode_zi_proba),
                                    f <- function(i){unlist(lapply(rnorm(table(groups)[[i]],
                                                                         mean = zi_mode_values, sd = 0.05),
                                                                   f <- function(x){return(min(1, max(x, 0)))}))}))
