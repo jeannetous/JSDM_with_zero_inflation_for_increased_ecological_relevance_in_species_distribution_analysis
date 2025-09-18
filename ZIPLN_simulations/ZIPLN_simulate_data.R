@@ -14,7 +14,6 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
                                           X0 = NULL, B0 = NULL,
                                           min_X0 = 0, max_X0 = 10,
                                           max_X0B0 = -0.2){
-  browser()
   Omega <- generate_omega(p, omega_structure, v, u)
   Sigma <- chol2inv(chol(Omega))
   X <- generate_X(n, d, min_X, max_X)
@@ -26,13 +25,14 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
         zi_params <- generate_X0_B0_cluster(n, p, block_values,
                                             row_clusters, col_clusters)
         B0 <- zi_params$B0 ; X0 <- zi_params$X0_num
+        zi_params <- list(X0 = zi_params$X0, B0 = B0, X0_num = zi_params$X0_num)
       }else{
         X0 <- generate_X(n, d, min_X0, max_X0)
         colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
         B0 <- generate_B0(X0, max_X0B0)
+        zi_params <- list(X0 = X0, B0 = B0)
       }
-    }
-    zi_params <- list(X0 = X0, B0 = B0)
+    }else{zi_params <- list(X0 = X0, B0 = B0)}
     }else{zi_params <- NULL}
   zi_proba <- generate_zi_proba(n, p, zi_type, n_mode_zi_proba,
                                 zi_mode_values, X0, B0)

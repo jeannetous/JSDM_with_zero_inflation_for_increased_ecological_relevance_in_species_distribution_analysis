@@ -32,7 +32,7 @@ one_ZIPLN_simulation <- function(simu, simu_params,
   zi <- ifelse(simu_params$zi_type == "sites", "row",
                ifelse(simu_params$zi_type == "species", "col", "single") )
   if(!is.na(PLN_formula_ZIvar)){
-    myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data, zi = zi,
+    myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data,
                         control = PLNnetwork_param(min_ratio = 0.05))
     PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
                                        stability = 0.8)
@@ -138,16 +138,16 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
   settings$ZIPLN_formula <- "Abundance ~ 0 + V1"
   settings[settings$zi_type == "covar",]$ZIPLN_formula <- "Abundance ~ 0 + V1 | 0 + VZI1"
   settings$PLN_formula_ZIvar <- NA
-  settings[settings$zi_type == "covar",]$PLN_formula_ZIvar <- NA
+  settings[settings$zi_type == "covar",]$PLN_formula_ZIvar <- "Abundance ~ 0 + V1 + VZI1"
 
   settings$n_simu <- n_simu
-  browser()
 
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
                                                    n_mode_zi_proba, zi_mode_values,
                                                    block_values, PLN_formula,
                                                    ZIPLN_formula, PLN_formula_ZIvar,
                                                    n_simu){
+
                                           simu_params = list(n = n,
                                                              p = p,
                                                              d = 1,
@@ -157,7 +157,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                                              min_X = min_X, max_X = max_X, SNR = SNR,
                                                              n_mode_zi_proba = n_mode_zi_proba,
                                                              zi_mode_values = zi_mode_values,
-                                                             block_values = block_values[[1]],
+                                                             block_values = block_values,
                                                              row_clusters = NULL,
                                                              col_clusters = NULL,
                                                              X0 = NULL, B0 = NULL,
@@ -169,7 +169,6 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                             ZIPLN_formula = ZIPLN_formula,
                                             PLN_formula_ZIvar = PLN_formula_ZIvar,
                                           )})
-  browser()
   final_res <- do.call(rbind, final_res) %>% as_tibble()
   final_res
 }

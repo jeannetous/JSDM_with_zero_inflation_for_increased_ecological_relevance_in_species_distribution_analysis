@@ -69,17 +69,15 @@ generate_B0 <- function(X0, max_X0B0 = -0.2){
 generate_X0_B0_cluster <- function(n, p, block_values,
                                    row_clusters = NULL, col_clusters = NULL) {
 
+  print(block_values)
   a <- nrow(block_values) ; b <- ncol(block_values)
   X0 <- generate_discrete_X(n, 1, a)
-  X0 <- apply(X0, c(1, 2), f <- function(x) LETTERS[as.numeric(x)])
   colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
   X0_num <- model.matrix(~ . - 1, data = as.data.frame(X0))
   if(is.null(row_clusters)) row_clusters <- sort(rep(1:a, length.out = n))
   if(is.null(col_clusters)) col_clusters <- sort(rep(1:b, length.out = p))
 
-  B0 <- do.call(cbind, unlist(mapply(function(col, k) {
-    replicate(k, block_values[, col], simplify = FALSE)
-  }, col = 1:ncol(block_values), k = as.numeric(table(col_clusters))), recursive = FALSE))
+  B0 <- block_values[, col_clusters]
   B0 <- apply(B0, c(1,2), f <- function(x){rnorm(1, x, 0.05)})
 
   return(list("X0" = X0, "X0_num" = X0_num, "B0" = B0))
@@ -88,7 +86,6 @@ generate_X0_B0_cluster <- function(n, p, block_values,
 generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
                               n_mode_zi_proba = c(1), zi_mode_values = NULL,
                               X0 = NULL, B0 = NULL){
-  cat(zi_type)
   zi_type <- match.arg(zi_type)
   if(zi_type == "covar"){
     X0B0 <- X0 %*% B0
@@ -128,7 +125,7 @@ generate_X <- function(n, d, min_X = 0, max_X = 10){
 generate_discrete_X <- function(n, d, n_cat_values){
   X = matrix(rep(1, n * d), nrow=n)
   for(dim in 1:d){X[,dim] = sort(rep(1:n_cat_values[[dim]], length.out = n))}
-  X <- apply(X, c(1,2), as.character) # for X values to be treated as categorical variables
+  X <- apply(X, c(1, 2), f <- function(x) LETTERS[as.numeric(x)])
   return(X)
 }
 
