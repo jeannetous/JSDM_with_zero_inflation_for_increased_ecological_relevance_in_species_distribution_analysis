@@ -6,8 +6,9 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
                                           zi_type = c("covar", "sites", "species"),
                                           zi_covar_cluster = FALSE,
                                           min_X = 0, max_X = 10, SNR = 0.75,
-                                          v = 0.3, u = 0.1, n_mode_zi_proba = c(1),
+                                          v = 0.3, u = 0.1, n_mode_zi_proba = 2,
                                           zi_mode_values = NULL,
+                                          proba_mode_zi = NULL,
                                           block_values = NULL,
                                           row_clusters = NULL,
                                           col_clusters = NULL,
@@ -34,8 +35,9 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
       }
     }else{zi_params <- list(X0 = X0, B0 = B0)}
     }else{zi_params <- NULL}
-  zi_proba <- generate_zi_proba(n, p, zi_type, n_mode_zi_proba,
-                                zi_mode_values, X0, B0)
+  zi_proba <- generate_zi_proba(n, p, zi_type,
+                                n_mode_zi_proba, zi_mode_values, proba_mode_zi,
+                                X0, B0)
   return(list(Omega = Omega, Sigma = Sigma, X = X, B = B,
               zi_params = zi_params, zi_proba = zi_proba))
 }

@@ -20,36 +20,45 @@ one_ZIPLN_simulation <- function(simu, simu_params,
 
 
   ########################## Running PLN model #################################
+  t0 = Sys.time()
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
                       control = PLNnetwork_param(min_ratio = 0.05))
   PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
                                      stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC",
                                    AUC = PLN_StARS_measures[["AUC"]])
-
+  t_PLN = Sys.time() - t0
+  PLN_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_BIC_measures[["time"]] = as.numeric(t_PLN)
 
   ############### Running PLN model with ZI covar, if applicable ###############
   zi <- ifelse(simu_params$zi_type == "sites", "row",
                ifelse(simu_params$zi_type == "species", "col", "single") )
   if(!is.na(PLN_formula_ZIvar)){
+    t0 = Sys.time()
     myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data,
                         control = PLNnetwork_param(min_ratio = 0.05))
     PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
                                        stability = 0.8)
     PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC",
                                      AUC = PLN_ZIvar_StARS_measures[["AUC"]])
+    t_PLN_ZIvar = Sys.time() - t0
+    PLN_ZIvar_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_ZIvar_BIC_measures[["time"]] = as.numeric(t_PLN_ZIvar)
   }else{
     PLN_ZIvar_StARS_measures <- NULL ; PLN_ZIvar_BIC_measures <- NULL
   }
 
 
   ######################### Running ZIPLN model ################################
+  t0 = Sys.time()
   myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = "row",
                           control = ZIPLNnetwork_param(min_ratio = 0.05))
   ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
                                        stability = 0.8)
   ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC",
                                      AUC = ZIPLN_StARS_measures[["AUC"]])
+  t_ZIPLN = Sys.time() - t0
+
+  ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN) ; ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
 
   ################# Merging all the measures in one data frame #################
   measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
@@ -90,8 +99,11 @@ multiple_ZIPLN_simulations <- function(n_simu, simu_params,
 
 grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                   zi_type_list, n_mode_zi_proba_sites_list,
-                                  zi_mode_values_sites_list, n_mode_zi_proba_species_list,
-                                  zi_mode_values_species_list, block_values_list,
+                                  zi_mode_values_sites_list,
+                                  proba_mode_zi_sites_list,
+                                  n_mode_zi_proba_species_list,
+                                  zi_mode_values_species_list,
+                                  proba_mode_zi_species_list, block_values_list,
                                   min_X = 0,  max_X = 10, SNR = 0.75,
                                   min_X0 = 0, max_X0 = 10, max_X0B0 = -0.2,
                                   mc.cores = max(1, parallel::detectCores() - 2)) {
@@ -102,12 +114,14 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                           KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
                           )
 
-  sites_zi_pairs <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
-                           zi_mode_values  = zi_mode_values_sites_list)
-  species_zi_pairs <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
-                             zi_mode_values  = zi_mode_values_species_list)
+  sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
+                            zi_mode_values  = zi_mode_values_sites_list,
+                            proba_mode_zi   = proba_mode_zi_sites_list)
+  species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
+                             zi_mode_values  = zi_mode_values_species_list,
+                             proba_mode_zi   = proba_mode_zi_species_list)
 
-
+  # browser()
   settings <- settings %>%
     rowwise() %>%
     do({
@@ -115,12 +129,13 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
       if (row$zi_type == "covar") {
         # Keep row with NA for E and F
         tibble(n = row$n, p = row$p, omega_structure = row$omega_structure,
-               zi_type = row$zi_type, n_mode_zi_proba = NA, zi_mode_values = NA)
+               zi_type = row$zi_type, n_mode_zi_proba = NA, zi_mode_values = NA,
+               proba_mode_zi = NA)
       } else if (row$zi_type == "sites") {
         # Expand with lookup1
-        cbind(row[1:4], sites_zi_pairs)
+        cbind(row[1:4], sites_zi_tuples)
       } else if (row$zi_type == "species") {
-        cbind(row[1:4], species_zi_pairs)
+        cbind(row[1:4], species_zi_tuples)
       }
     }) %>%
     ungroup()
@@ -142,8 +157,10 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
 
   settings$n_simu <- n_simu
 
+  # browser()
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
                                                    n_mode_zi_proba, zi_mode_values,
+                                                   proba_mode_zi,
                                                    block_values, PLN_formula,
                                                    ZIPLN_formula, PLN_formula_ZIvar,
                                                    n_simu){
@@ -157,6 +174,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                                              min_X = min_X, max_X = max_X, SNR = SNR,
                                                              n_mode_zi_proba = n_mode_zi_proba,
                                                              zi_mode_values = zi_mode_values,
+                                                             proba_mode_zi = proba_mode_zi,
                                                              block_values = block_values,
                                                              row_clusters = NULL,
                                                              col_clusters = NULL,

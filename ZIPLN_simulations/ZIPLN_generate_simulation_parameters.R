@@ -84,24 +84,30 @@ generate_X0_B0_cluster <- function(n, p, block_values,
 }
 
 generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
-                              n_mode_zi_proba = c(1), zi_mode_values = NULL,
+                              n_mode_zi_proba = 1, zi_mode_values = NULL,
+                              proba_mode_zi = NULL,
                               X0 = NULL, B0 = NULL){
   zi_type <- match.arg(zi_type)
   if(zi_type == "covar"){
     X0B0 <- X0 %*% B0
     zi_proba <- exp(X0B0) / (1 + exp(X0B0))
-    zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(1, max(0, x)))
   }else{
-    breaks <- cumsum(n_mode_zi_proba)
-    if(zi_type == "sites"){groups <- cut(1:n, c(0, round(breaks * n)), labels = FALSE)}
-    if(zi_type == "species"){groups <- cut(1:p, c(0, round(breaks * p)), labels = FALSE)}
-    zi_proba_list <- unlist(lapply(1:length(n_mode_zi_proba),
-                                   f <- function(i){unlist(lapply(rnorm(table(groups)[[i]],
-                                                                        mean = zi_mode_values, sd = 0.05),
-                                                                  f <- function(x){return(min(1, max(x, 0)))}))}))
-    if(zi_type == "sites"){zi_proba <- matrix(rep(zi_proba_list, p), nrow = n, byrow = F)}
-    if(zi_type == "species"){zi_proba <- matrix(rep(zi_proba_list, n), nrow = n, byrow = T)}
+    if(is.null(proba_mode_zi)){
+      if(zi_type == "sites"){groups <- sort(rep(1:n_mode_zi_proba, length.out = n))
+      }else{groups <- sort(rep(1:n_mode_zi_proba, length.out = p))}
+    }else{
+      if(zi_type == "sites"){groups <- sample(1:n_mode_zi_proba, size = n, replace = TRUE, prob = proba_mode_zi)
+      }else{groups <- sample(1:n_mode_zi_proba, size = p, replace = TRUE, prob = proba_mode_zi)}
+    }
+    if(zi_type == "sites"){
+      zi_proba_list <-  unlist(lapply(1:n, f <- function(i){rnorm(1, mean = zi_mode_values[[groups[[i]]]], sd = 0.05)}))
+      zi_proba <- matrix(rep(zi_proba_list, p), nrow = n, byrow = F)
+    }else{
+      zi_proba_list <-  unlist(lapply(1:p, f <- function(j){rnorm(1, mean = zi_mode_values[[groups[[j]]]], sd = 0.05)}))
+      zi_proba <- matrix(rep(zi_proba_list, n), nrow = n, byrow = T)
+    }
   }
+  zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(1, max(0, x)))
   return(zi_proba)
 }
 
