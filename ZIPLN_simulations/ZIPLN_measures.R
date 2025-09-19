@@ -1,5 +1,9 @@
 library(Metrics)
 
+#' @description computes recall, fallout, precision and f1-score for
+#' an inferred network (precision matrices here) given the true one
+#' @param omega_true true precision matrix
+#' @param omega_estimate estimated precision matrix
 roc_metrics <- function(omega_true, omega_estimate){
 
   diag(omega_true) <- 0 ; diag(omega_estimate) <- 0
@@ -30,10 +34,17 @@ roc_metrics <- function(omega_true, omega_estimate){
   return(res)
 }
 
+#' @description computes the AUC given the list of recall and fallout values
+#' @param recall list of recall values
+#' @param fallout list of corresponding fallout values
 auc <- function(recall, fallout){
   return(sum(diff(fallout) * (recall[-1] + recall[-length(recall)]) / 2))
 }
 
+#' @description given a precision matrix and a PLN model (collection of PLN fit
+#' for different penalties), computes the AUC associated to the model
+#' @param omega_true true precision matrix
+#' @param PLN_model fitted PLN model (with multiple penalties)
 get_auc <- function(omega_true, PLN_model){
   fallout <- c() ; recall <- c()
   for(pen in PLN_model$penalties){
@@ -52,6 +63,12 @@ get_auc <- function(omega_true, PLN_model){
   return(auc(recall_unique, fallout_unique))
 }
 
+#' @description computes a collection of measures associated to a given PLN model
+#' @param PLN_model fitted PLN model (with multiple penalties)
+#' @param params true parameters under which the data was simulated
+#' @param model_selection model selection criterion to compute the measures for (BIC, ICL, StARS)
+#' @param stability when model_selection = StARS, level of stability to use for stability selection
+#' @param AUC AUC if already known, to avoid recomputing it if it's already been done with another model_selection criterion
 get_measures <- function(PLN_model, params, model_selection = NULL,
                          stability = 0.8, AUC = NULL) {
   # Select best sparsity level according to the chosen criterion

@@ -1,7 +1,34 @@
 source("ZIPLN_generate_simulation_parameters.R")
 library(MASS)
 
-# to document !!
+#' @description generates a named list with all the required parameters to simulate
+#' data under the ZIPLN model
+#' @param n number of rows in the Abundance matrix
+#' @param p number of columns in the Abundance matrix
+#' @param d number of covariates in the covariates matrix
+#' @param omega_structure network structure for the precision matrix (erdos_renyi,
+#' community or preferential_attachment)
+#' @param zi_type type of zero-inflation
+#' @param zi_covar_cluster boolean, if zi_type = covar, whether there should be
+#' a division of the ZI values into rows and column clusters
+#' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
+#' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
+#' @param SNR signal to noise ratio, ratio between Sigma's variance and that of XB
+#' @param v calibration parameter to get Omega from a graph
+#' @param u calibration parameter to get Omega from a graph
+#' @param n_mode_zi_proba if zi_type = sites or species, number of different zi probabilities
+#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities of length n_mode_zi_proba
+#' @param proba_mode_zi list of probabilities of having each ZI contained in zi_mode_values
+#' @param block_values if zi_type = "covar" and  zi_covar_cluster = TRUE, values
+#' of X0 %*% B0 expected for each pair (row_cluster, col_cluster)
+#' @param X0 optional, if zi_type = covar, list of ZI covariates
+#' @param B0 optional, regression matrix for the ZI covariates, required if X0 is not null
+#' @param min_X0 minimum value for X0, either one single value for X0, or a list of length d for each dimension,
+#' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
+#' @param max_X0 maximum value for X0, either one single value for X0, or a list of length d for each dimension
+#' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
+#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
+#' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
 generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_renyi",
                                           zi_type = c("covar", "sites", "species"),
                                           zi_covar_cluster = FALSE,
@@ -42,6 +69,11 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
               zi_params = zi_params, zi_proba = zi_proba))
 }
 
+#' @description simulates data under the ZIPLN model for fixed parameters
+#' @param Sigma variance-covariance matrix of the model
+#' @param X covariates matrix
+#' @param B regression coefficient matrix
+#' @param zi_proba matrix of zero-inflation probabilities
 simulate_ZIPLN_data_fixed_parameters <- function(Sigma, X, B, zi_proba){
   n <- nrow(X) ; p <- nrow(Sigma)
   Y = matrix(rep(1, n*p), nrow=n)
@@ -53,6 +85,8 @@ simulate_ZIPLN_data_fixed_parameters <- function(Sigma, X, B, zi_proba){
   return(Y)
 }
 
+#' @description simulates data under the ZIPLN model for a list of fixed parameters
+#' @param params named list of parameters for the ZIPLN model
 simulate_ZIPLN_data <- function(params){
   Y <- simulate_ZIPLN_data_fixed_parameters(params$Sigma, params$X,
                                             params$B, params$zi_proba)

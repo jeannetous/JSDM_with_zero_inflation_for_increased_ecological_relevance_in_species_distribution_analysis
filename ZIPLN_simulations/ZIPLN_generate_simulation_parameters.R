@@ -2,17 +2,22 @@ library(igraph)
 
 ####################### Functions to generate Omega ############################
 
-# Erdos-Renyi
+#' @description generates an Erdos-Renyi graph
+#' @param p number of nodes in the graph
+#' @param prob probability of having an edge between 2 nodes
 erdos_renyi_graph <- function(p, prob = 0.5){
   as_adjacency_matrix(sample_gnp(p, prob))
 }
 
-# Preferential attachment
+#' @description generates a preferential attachment graph
 preferential_attachment_graph <- function(p){
   as_adjacency_matrix(sample_pa(p, directed = FALSE))
 }
 
-# Community structure
+#' @description generates a community structure attachment graph
+#' @param prob probability of belonging to each group in the community
+#' @param prob_in probability of having an edge between 2 nodes from the same group
+#' @param prob_in probability of having an edge between 2 nodes from different groups
 community_graph <- function(p, prob = c(1/2,1/4,1/4), prob_in = 0.5, prob_out = 0.1) {
   pref_mat <- matrix(prob_out, length(prob), length(prob))
   diag(pref_mat) <- prob_in
@@ -22,7 +27,11 @@ community_graph <- function(p, prob = c(1/2,1/4,1/4), prob_in = 0.5, prob_out = 
   graph_mat
 }
 
-
+#' @description generates a precision matrix Omega
+#' @param p dimension of the graph
+#' @param omega_structure type of structure for the underlying graph
+#' @param v calibration parameter to get Omega from a graph
+#' @param u calibration parameter to get Omega from a graph
 generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
   cond <- FALSE
   while(!cond){
@@ -53,7 +62,9 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
 
 
 ################## Functions to add zero-inflation in the data #################
-# %% max_X0B0 controls for the column mean
+#' @description generate B0 that will define ZI probabilities with X0
+#' @param X0 matrix of ZI-related covariates
+#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
 generate_B0 <- function(X0, max_X0B0 = -0.2){
   d <- ncol(X0)
   B0 <- matrix(rep(1, d*p), nrow=d)
@@ -64,8 +75,14 @@ generate_B0 <- function(X0, max_X0B0 = -0.2){
   B0 <- sweep(B0, 2, correcting_factors, `*`)
 }
 
-# %% C gives the expected block values of X0 %*% B0
-# %% X0 and B0 are divided in the clusters given by row_clusters and col_clusters
+#' @description generates a discrete X0 and the corresponding B0 to have zi-proba
+#' defined by rows and columns clusters
+#' @param n number of rows in the final zi_proba matrix
+#' @param block_values values of X0 %*% B0 expected for each pair (row_cluster, col_cluster)
+#' @param row_clusters divisions of 1:n into row clusters, given as a list of labels,
+#' default is equiprobable distributions
+#' @param col_clusters divisions of 1:p into column clusters, given as a list of labels,
+#' default is equiprobable distributions
 generate_X0_B0_cluster <- function(n, p, block_values,
                                    row_clusters = NULL, col_clusters = NULL) {
 
@@ -83,6 +100,15 @@ generate_X0_B0_cluster <- function(n, p, block_values,
   return(list("X0" = X0, "X0_num" = X0_num, "B0" = B0))
 }
 
+#' @description generates a matrix of zero-inflation probabilities
+#' @param n number of rows in the output matrix
+#' @param p number of columns in the output matrix
+#' @param zi_type zero-inflation type (covariate-dependent, site-wise = row-wise or species-wise = column-wise)
+#' @param n_mode_zi_proba if zi_type = sites or species, number of different zi probabilities
+#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities of length n_mode_zi_proba
+#' @param proba_mode_zi list of probabilities of having each ZI contained in zi_mode_values
+#' @param X0 if zi_type = covar, list of ZI covariates
+#' @param B0 if zi_type = covar, regression parameters, so that zi_proba = logit(X0 %*% B0)
 generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
                               n_mode_zi_proba = 1, zi_mode_values = NULL,
                               proba_mode_zi = NULL,
@@ -111,6 +137,9 @@ generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
   return(zi_proba)
 }
 
+#' @description adds 0s to an abundance matrix
+#' @param Y abundance matrix
+#' @param matrix of zero-inflation probabilities for each (row, column) in Y
 add_zero_inflation <- function(Y, zi_proba){
   Z <- apply(zi_proba, c(1, 2), f <- function(x) rbinom(1,1,x))
   Y[Z == 1] <- 0
@@ -119,6 +148,11 @@ add_zero_inflation <- function(Y, zi_proba){
 
 ##################### Functions to generate other parameters ###################
 
+#' @description generates continuous covariates matrix X
+#' @param n number of rows in X
+#' @param d number of column in X
+#' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
+#' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
 generate_X <- function(n, d, min_X = 0, max_X = 10){
   if(length(min_X == 1)) min_X <- rep(min_X, d)
   if(length(max_X == 1)) max_X <- rep(max_X, d)
@@ -128,6 +162,11 @@ generate_X <- function(n, d, min_X = 0, max_X = 10){
   return(X)
 }
 
+#' @description generates discrete covariates matrix X
+#' @param n number of rows in X
+#' @param d number of column in X
+#' @param n_cat_values number of values to include, either one single value for X,
+#' or a list of length d for each dimension, the values are distributed equiprobably in X
 generate_discrete_X <- function(n, d, n_cat_values){
   X = matrix(rep(1, n * d), nrow=n)
   for(dim in 1:d){X[,dim] = sort(rep(1:n_cat_values[[dim]], length.out = n))}
@@ -135,6 +174,11 @@ generate_discrete_X <- function(n, d, n_cat_values){
   return(X)
 }
 
+#' @description generates regression matrix for a given covariate matrix
+#' @param p number of columns in B
+#' @param X covariates matric
+#' @param Sigma variance-covariance matrix used in the model
+#' @param SNR signal to noise ratio, ratio between Sigma's variance and that of XB
 generate_B <- function(p, X, Sigma, SNR = 0.75){
   d <- ncol(X)
   B <- matrix(rep(1, d*p), nrow=d)

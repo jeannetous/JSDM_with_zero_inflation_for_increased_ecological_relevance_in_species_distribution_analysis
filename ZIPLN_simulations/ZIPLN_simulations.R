@@ -4,7 +4,18 @@ library(dplyr)
 source("ZIPLN_measures.R")
 source("ZIPLN_simulate_data.R")
 
-one_ZIPLN_simulation <- function(simu, simu_params,
+#' @description simulates data under the ZIPLN model, runs different models and
+#' outputs the performance measures for each one
+#' @param simu rank of the simulation run ()
+#' @param simu_params simulation parameters to simulate the data
+#' @param PLN_formula formula to use to run PLN-network, the variables are named
+#' V1, V2... so the formula should look like "Abundance ~ 0 + V1..."
+#' @param ZIPLN_formula formula to use to run ZIPLN-network. If simu_params$zi_type = "covar",
+#' the ZI variables are named VZI1, VZI2...so the formula should look like "Abundance ~ 0 + V1... | 0 + VZI1"
+#' If simu_params$zi_type = "sites" or "species", the correct "zi" parameter is used in ZIPLNnetwork
+#' @param PLN_formula_ZIvar formula to use to run PLN-network including ZI variables in the abundance. Useful
+#' only if zi_type = covar. Should look like "Abundance ~ 0 + V1 +... + VZI1 + ..."
+one_ZIPLN_simulation <- function(simu = 1, simu_params,
                                  PLN_formula, ZIPLN_formula,
                                  PLN_formula_ZIvar = NA){
 
@@ -78,10 +89,19 @@ one_ZIPLN_simulation <- function(simu, simu_params,
 }
 
 
+#' @description runs multiple simulations with the same parameters
+#' @param n_simu number of simulations to run
+#' #' @param PLN_formula formula to use to run PLN-network, the variables are named
+#' V1, V2... so the formula should look like "Abundance ~ 0 + V1..."
+#' @param ZIPLN_formula formula to use to run ZIPLN-network. If simu_params$zi_type = "covar",
+#' the ZI variables are named VZI1, VZI2...so the formula should look like "Abundance ~ 0 + V1... | 0 + VZI1"
+#' If simu_params$zi_type = "sites" or "species", the correct "zi" parameter is used in ZIPLNnetwork
+#' @param PLN_formula_ZIvar formula to use to run PLN-network including ZI variables in the abundance. Useful
+#' only if zi_type = covar. Should look like "Abundance ~ 0 + V1 +... + VZI1 + ..."
+#' @param mc.cores number of cores to run the simulations on in parallel
 multiple_ZIPLN_simulations <- function(n_simu, simu_params,
                                        PLN_formula, ZIPLN_formula,
                                        PLN_formula_ZIvar = NULL,
-                                       min_X = 0,  max_X = 10, SNR = 0.75,
                                        mc.cores = max(1, parallel::detectCores() - 2)){
   cat("Settings: (n, p, omega structure, zi type) = (",simu_params$n, simu_params$p,
       simu_params$omega_structure, simu_params$zi_type, ")\n")
@@ -97,6 +117,35 @@ multiple_ZIPLN_simulations <- function(n_simu, simu_params,
   res
 }
 
+#' @description runs multiple simulations for each set of parameters in a grid
+#' @param n_simu number of simulations to run for each parametrization
+#' @param n_list number of n (number of sites) values to go through
+#' @param p_list number of p (number of species) values to go through
+#' @param omega_structure_list list of omega_structure values to go through
+#' @param zi_type_list list of zi_type values to go through
+#' @param n_mode_zi_proba_sites_list, list of n_mode_zi_proba values to go through for the sites
+#' @param zi_mode_values_sites_list, list of zi_mode_values values to go through for the sites
+#' @param proba_mode_zi_sites_list, list of proba_mode_zi values to go through for the sites
+#' @param n_mode_zi_proba_species_list, list of n_mode_zi_proba values to go through for the species
+#' @param zi_mode_values_species_list, list of zi_mode_values values to go through for the species
+#' @param proba_mode_zi_species_list, list of proba_mode_zi values to go through for the species
+#' @param block_values_list list of matrices for block_values for when zi_type = covar
+#' @param min_X minimum value for X, either one single value for X, or a list of
+#' length d for each dimension, fixed along the grid
+#' @param max_X maximum value for X, either one single value for X, or a list of
+#' length d for each dimension, fixed along the grid
+#' @param SNR signal to noise ratio, ratio between Sigma's variance and that of
+#' XB, fixed along the grid
+#' #' @param min_X0 minimum value for X0, either one single value for X0, or a
+#' list of length d for each dimension, applied only if zi_covar_cluster = FALSE
+#' (otherwise X0 is discrete), fixed along the grid
+#' @param max_X0 maximum value for X0, either one single value for X0, or a
+#' list of length d for each dimension applied only if zi_covar_cluster = FALSE
+#' (otherwise X0 is discrete), fixed along the grid
+#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
+#' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete), fixed
+#' along the grid
+#' @param mc.cores number of cores to run the simulations on in parallel
 grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                   zi_type_list, n_mode_zi_proba_sites_list,
                                   zi_mode_values_sites_list,
