@@ -15,7 +15,7 @@ source("ZIPLN_simulate_data.R")
 #' If simu_params$zi_type = "sites" or "species", the correct "zi" parameter is used in ZIPLNnetwork
 #' @param PLN_formula_ZIvar formula to use to run PLN-network including ZI variables in the abundance. Useful
 #' only if zi_type = covar. Should look like "Abundance ~ 0 + V1 +... + VZI1 + ..."
-one_ZIPLN_simulation <- function(simu = 1, simu_params,
+one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                                  PLN_formula, ZIPLN_formula,
                                  PLN_formula_ZIvar = NA){
 
@@ -85,7 +85,9 @@ one_ZIPLN_simulation <- function(simu = 1, simu_params,
   }
   res <- as.data.frame(cbind(simu = simu, n = simu_params$n, p = simu_params$p,
                              omega_structure = simu_params$omega_structure,
-                             zi_type = simu_params$zi_type, do.call(rbind, measure_rows)))
+                             zi_type = simu_params$zi_type,
+                             zi_config = zi_config,
+                             do.call(rbind, measure_rows)))
   return(res)
 }
 
@@ -100,7 +102,7 @@ one_ZIPLN_simulation <- function(simu = 1, simu_params,
 #' @param PLN_formula_ZIvar formula to use to run PLN-network including ZI variables in the abundance. Useful
 #' only if zi_type = covar. Should look like "Abundance ~ 0 + V1 +... + VZI1 + ..."
 #' @param mc.cores number of cores to run the simulations on in parallel
-multiple_ZIPLN_simulations <- function(n_simu, simu_params,
+multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
                                        PLN_formula, ZIPLN_formula,
                                        PLN_formula_ZIvar = NULL,
                                        mc.cores = max(1, parallel::detectCores() - 2)){
@@ -109,6 +111,7 @@ multiple_ZIPLN_simulations <- function(n_simu, simu_params,
 
   multiple_res <- parallel::mclapply(1:n_simu,
                                      one_ZIPLN_simulation,
+                                     zi_config = zi_config,
                                      simu_params = simu_params,
                                      PLN_formula = PLN_formula,
                                      ZIPLN_formula = ZIPLN_formula,
@@ -169,14 +172,19 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                           KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
   )
 
+
   sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
                             zi_mode_values  = zi_mode_values_sites_list,
-                            proba_mode_zi   = proba_mode_zi_sites_list)
+                            proba_mode_zi   = proba_mode_zi_sites_list,
+                            zi_config = paste0("sites_", 1:length(n_mode_zi_proba_sites_list)))
+
   species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
                               zi_mode_values  = zi_mode_values_species_list,
-                              proba_mode_zi   = proba_mode_zi_species_list)
+                              proba_mode_zi   = proba_mode_zi_species_list,
+                              zi_config = paste0("species_", 1:length(n_mode_zi_proba_species_list)))
 
-  # browser()
+
+
   settings <- settings %>%
     rowwise() %>%
     do({
@@ -198,9 +206,9 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
     df_tmp$block_values <- rep(list(block_values_list[[i]]), nrow(df_tmp))
     df_tmp$row_clusters_proba <- rep(list(row_clusters_proba_list[[i]]), nrow(df_tmp))
     df_tmp$col_clusters_proba <- rep(list(col_clusters_proba_list[[i]]), nrow(df_tmp))
+    df_tmp$zi_config <- rep(paste0("covar_", i), nrow(df_tmp))
     return(df_tmp)
   }))
-
 
   settings <- settings %>% filter(zi_type != "covar")
   settings <- settings %>% mutate(block_values = NA, row_clusters_proba = NA, col_clusters_proba = NA)
@@ -214,11 +222,14 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
 
   settings$n_simu <- n_simu
 
+  # browser()
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
                                                    n_mode_zi_proba, zi_mode_values,
-                                                   proba_mode_zi, block_values,
+                                                   proba_mode_zi, zi_config,
+                                                   block_values,
                                                    row_clusters_proba,
-                                                   col_clusters_proba, PLN_formula,
+                                                   col_clusters_proba,
+                                                   PLN_formula,
                                                    ZIPLN_formula, PLN_formula_ZIvar,
                                                    n_simu){
 
@@ -241,7 +252,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                        min_X0 = min_X0, max_X0 = max_X0,
                        max_X0B0 = max_X0B0)
     multiple_ZIPLN_simulations(
-      n_simu = n_simu, simu_params,
+      n_simu = n_simu, zi_config = zi_config, simu_params,
       PLN_formula = PLN_formula,
       ZIPLN_formula = ZIPLN_formula,
       PLN_formula_ZIvar = PLN_formula_ZIvar,
