@@ -83,20 +83,32 @@ generate_B0 <- function(X0, max_X0B0 = -0.2){
 #' default is equiprobable distributions
 #' @param col_clusters divisions of 1:p into column clusters, given as a list of labels,
 #' default is equiprobable distributions
+#' @param row_clusters_proba list of probabilities for row clusters, used only if row_clusters=NULL,
+#' default is equiprobable distributions
+#' @param col_clusters_proba list of probabilities for column clusters, used only if col_clusters=NULL,
+#' default is equiprobable distributions
 generate_X0_B0_cluster <- function(n, p, block_values,
-                                   row_clusters = NULL, col_clusters = NULL) {
+                                   row_clusters = NULL, col_clusters = NULL,
+                                   row_clusters_proba = NULL,
+                                   col_clusters_proba = NULL) {
 
   print(block_values)
   a <- nrow(block_values) ; b <- ncol(block_values)
-  X0 <- generate_discrete_X(n, 1, a)
-  colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
-  X0_num <- model.matrix(~ . - 1, data = as.data.frame(X0))
-  if(is.null(row_clusters)) row_clusters <- sort(rep(1:a, length.out = n))
-  if(is.null(col_clusters)) col_clusters <- sort(rep(1:b, length.out = p))
-
+  if(is.null(row_clusters)){
+    if(is.null(row_clusters_proba)){
+      row_clusters <- sort(rep(1:a, length.out = n))
+    }else{row_clusters <- sort(sample(1:a, size = n, replace = TRUE, prob = row_clusters_proba))}
+  }
+  if(is.null(col_clusters)){
+    if(is.null(col_clusters_proba)){
+      col_clusters <- sort(rep(1:b, length.out = p))
+    }else{col_clusters <- sort(sample(1:b, size = p, replace = TRUE, prob = col_clusters_proba))}
+  }
   B0 <- block_values[, col_clusters]
   B0 <- apply(B0, c(1,2), f <- function(x){rnorm(1, x, 0.05)})
-
+  X0 <- generate_discrete_X(n, 1, a, row_clusters)
+  colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
+  X0_num <- model.matrix(~ . - 1, data = as.data.frame(X0))
   return(list("X0" = X0, "X0_num" = X0_num, "B0" = B0))
 }
 
@@ -167,9 +179,11 @@ generate_X <- function(n, d, min_X = 0, max_X = 10){
 #' @param d number of column in X
 #' @param n_cat_values number of values to include, either one single value for X,
 #' or a list of length d for each dimension, the values are distributed equiprobably in X
-generate_discrete_X <- function(n, d, n_cat_values){
+generate_discrete_X <- function(n, d, n_cat_values, row_clusters = NULL){
   X = matrix(rep(1, n * d), nrow=n)
-  for(dim in 1:d){X[,dim] = sort(rep(1:n_cat_values[[dim]], length.out = n))}
+  if(is.null(row_clusters)){
+    for(dim in 1:d){X[,dim] = sort(rep(1:n_cat_values[[dim]], length.out = n))}
+  }else{for(dim in 1:d){X[,dim] = row_clusters}}
   X <- apply(X, c(1, 2), f <- function(x) LETTERS[as.numeric(x)])
   return(X)
 }

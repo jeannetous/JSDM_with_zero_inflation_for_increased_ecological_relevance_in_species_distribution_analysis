@@ -39,6 +39,8 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
                                           block_values = NULL,
                                           row_clusters = NULL,
                                           col_clusters = NULL,
+                                          row_clusters_proba = NULL,
+                                          col_clusters_proba = NULL,
                                           X0 = NULL, B0 = NULL,
                                           min_X0 = 0, max_X0 = 10,
                                           max_X0B0 = -0.2){
@@ -51,7 +53,8 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
     if(is.null(X0)){
       if(zi_covar_cluster){
         zi_params <- generate_X0_B0_cluster(n, p, block_values,
-                                            row_clusters, col_clusters)
+                                            row_clusters, col_clusters,
+                                            row_clusters_proba, col_clusters_proba)
         B0 <- zi_params$B0 ; X0 <- zi_params$X0_num
         zi_params <- list(X0 = zi_params$X0, B0 = B0, X0_num = zi_params$X0_num)
       }else{

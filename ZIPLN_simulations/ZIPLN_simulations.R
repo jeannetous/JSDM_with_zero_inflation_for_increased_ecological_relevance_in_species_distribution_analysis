@@ -47,11 +47,11 @@ one_ZIPLN_simulation <- function(simu = 1, simu_params,
   if(!is.na(PLN_formula_ZIvar)){
     t0 = Sys.time()
     myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data,
-                        control = PLNnetwork_param(min_ratio = 0.05))
+                              control = PLNnetwork_param(min_ratio = 0.05))
     PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
-                                       stability = 0.8)
+                                             stability = 0.8)
     PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC",
-                                     AUC = PLN_ZIvar_StARS_measures[["AUC"]])
+                                           AUC = PLN_ZIvar_StARS_measures[["AUC"]])
     t_PLN_ZIvar = Sys.time() - t0
     PLN_ZIvar_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_ZIvar_BIC_measures[["time"]] = as.numeric(t_PLN_ZIvar)
   }else{
@@ -73,10 +73,10 @@ one_ZIPLN_simulation <- function(simu = 1, simu_params,
 
   ################# Merging all the measures in one data frame #################
   measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
-                        c(method = "PLN", PLN_BIC_measures),
-                        c(method = "ZIPLN", ZIPLN_StARS_measures),
-                        c(method = "ZIPLN", ZIPLN_BIC_measures)
-                        )
+                       c(method = "PLN", PLN_BIC_measures),
+                       c(method = "ZIPLN", ZIPLN_StARS_measures),
+                       c(method = "ZIPLN", ZIPLN_BIC_measures)
+  )
 
   if(!is.na(PLN_formula_ZIvar)){
     measure_rows <- c(measure_rows,
@@ -84,6 +84,7 @@ one_ZIPLN_simulation <- function(simu = 1, simu_params,
                            c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
   }
   res <- as.data.frame(cbind(simu = simu, n = simu_params$n, p = simu_params$p,
+                             omega_structure = simu_params$omega_structure,
                              zi_type = simu_params$zi_type, do.call(rbind, measure_rows)))
   return(res)
 }
@@ -130,6 +131,10 @@ multiple_ZIPLN_simulations <- function(n_simu, simu_params,
 #' @param zi_mode_values_species_list, list of zi_mode_values values to go through for the species
 #' @param proba_mode_zi_species_list, list of proba_mode_zi values to go through for the species
 #' @param block_values_list list of matrices for block_values for when zi_type = covar
+#' @param row_clusters_proba_list list of lists of probabilities for row clusters, used only if row_clusters=NULL,
+#' default is equiprobable distributions
+#' @param col_clusters_proba_list list of lists of probabilities for column clusters, used only if col_clusters=NULL,
+#' default is equiprobable distributions
 #' @param min_X minimum value for X, either one single value for X, or a list of
 #' length d for each dimension, fixed along the grid
 #' @param max_X maximum value for X, either one single value for X, or a list of
@@ -153,6 +158,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                   n_mode_zi_proba_species_list,
                                   zi_mode_values_species_list,
                                   proba_mode_zi_species_list, block_values_list,
+                                  row_clusters_proba_list, col_clusters_proba_list,
                                   min_X = 0,  max_X = 10, SNR = 0.75,
                                   min_X0 = 0, max_X0 = 10, max_X0B0 = -0.2,
                                   mc.cores = max(1, parallel::detectCores() - 2)) {
@@ -161,14 +167,14 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                           omega_structure = omega_structure_list,
                           zi_type = zi_type_list,
                           KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
-                          )
+  )
 
   sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
                             zi_mode_values  = zi_mode_values_sites_list,
                             proba_mode_zi   = proba_mode_zi_sites_list)
   species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
-                             zi_mode_values  = zi_mode_values_species_list,
-                             proba_mode_zi   = proba_mode_zi_species_list)
+                              zi_mode_values  = zi_mode_values_species_list,
+                              proba_mode_zi   = proba_mode_zi_species_list)
 
   # browser()
   settings <- settings %>%
@@ -176,12 +182,10 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
     do({
       row <- .
       if (row$zi_type == "covar") {
-        # Keep row with NA for E and F
         tibble(n = row$n, p = row$p, omega_structure = row$omega_structure,
                zi_type = row$zi_type, n_mode_zi_proba = NA, zi_mode_values = NA,
                proba_mode_zi = NA)
       } else if (row$zi_type == "sites") {
-        # Expand with lookup1
         cbind(row[1:4], sites_zi_tuples)
       } else if (row$zi_type == "species") {
         cbind(row[1:4], species_zi_tuples)
@@ -189,13 +193,17 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
     }) %>%
     ungroup()
 
-  block_values_rows <- settings %>%
-                       filter(zi_type == "covar") %>%
-                       mutate(block_values = list(block_values_list)) %>%
-                       unnest(cols = c(block_values))
+  block_values_rows <- do.call(rbind, lapply(seq_along(block_values_list), function(i) {
+    df_tmp <- settings %>% filter(zi_type == "covar")
+    df_tmp$block_values <- rep(list(block_values_list[[i]]), nrow(df_tmp))
+    df_tmp$row_clusters_proba <- rep(list(row_clusters_proba_list[[i]]), nrow(df_tmp))
+    df_tmp$col_clusters_proba <- rep(list(col_clusters_proba_list[[i]]), nrow(df_tmp))
+    return(df_tmp)
+  }))
+
 
   settings <- settings %>% filter(zi_type != "covar")
-  settings <- settings %>% mutate(block_values = NA)
+  settings <- settings %>% mutate(block_values = NA, row_clusters_proba = NA, col_clusters_proba = NA)
   settings <- rbind(settings, block_values_rows)
 
   settings$PLN_formula <- "Abundance ~ 0 + V1"
@@ -206,36 +214,38 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
 
   settings$n_simu <- n_simu
 
-  # browser()
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
                                                    n_mode_zi_proba, zi_mode_values,
-                                                   proba_mode_zi,
-                                                   block_values, PLN_formula,
+                                                   proba_mode_zi, block_values,
+                                                   row_clusters_proba,
+                                                   col_clusters_proba, PLN_formula,
                                                    ZIPLN_formula, PLN_formula_ZIvar,
                                                    n_simu){
 
-                                          simu_params = list(n = n,
-                                                             p = p,
-                                                             d = 1,
-                                                             omega_structure = omega_structure,
-                                                             zi_type = zi_type,
-                                                             zi_covar_cluster = TRUE,
-                                                             min_X = min_X, max_X = max_X, SNR = SNR,
-                                                             n_mode_zi_proba = n_mode_zi_proba,
-                                                             zi_mode_values = zi_mode_values,
-                                                             proba_mode_zi = proba_mode_zi,
-                                                             block_values = block_values,
-                                                             row_clusters = NULL,
-                                                             col_clusters = NULL,
-                                                             X0 = NULL, B0 = NULL,
-                                                             min_X0 = min_X0, max_X0 = max_X0,
-                                                             max_X0B0 = max_X0B0)
-                                          multiple_ZIPLN_simulations(
-                                            n_simu = n_simu, simu_params,
-                                            PLN_formula = PLN_formula,
-                                            ZIPLN_formula = ZIPLN_formula,
-                                            PLN_formula_ZIvar = PLN_formula_ZIvar,
-                                          )})
+    simu_params = list(n = n,
+                       p = p,
+                       d = 1,
+                       omega_structure = omega_structure,
+                       zi_type = zi_type,
+                       zi_covar_cluster = TRUE,
+                       min_X = min_X, max_X = max_X, SNR = SNR,
+                       n_mode_zi_proba = n_mode_zi_proba,
+                       zi_mode_values = zi_mode_values,
+                       proba_mode_zi = proba_mode_zi,
+                       block_values = block_values,
+                       row_clusters = NULL,
+                       col_clusters = NULL,
+                       row_clusters_proba = row_clusters_proba,
+                       col_clusters_proba = col_clusters_proba,
+                       X0 = NULL, B0 = NULL,
+                       min_X0 = min_X0, max_X0 = max_X0,
+                       max_X0B0 = max_X0B0)
+    multiple_ZIPLN_simulations(
+      n_simu = n_simu, simu_params,
+      PLN_formula = PLN_formula,
+      ZIPLN_formula = ZIPLN_formula,
+      PLN_formula_ZIvar = PLN_formula_ZIvar,
+    )})
   final_res <- do.call(rbind, final_res) %>% as_tibble()
   final_res
 }
