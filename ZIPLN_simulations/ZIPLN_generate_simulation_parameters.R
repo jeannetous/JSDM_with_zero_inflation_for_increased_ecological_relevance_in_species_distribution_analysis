@@ -5,20 +5,20 @@ library(igraph)
 #' @description generates an Erdos-Renyi graph
 #' @param p number of nodes in the graph
 #' @param prob probability of having an edge between 2 nodes
-erdos_renyi_graph <- function(p, prob = 0.5){
+erdos_renyi_graph <- function(p, prob = 0.05){
   as_adjacency_matrix(sample_gnp(p, prob))
 }
 
 #' @description generates a preferential attachment graph
 preferential_attachment_graph <- function(p){
-  as_adjacency_matrix(sample_pa(p, directed = FALSE))
+  as_adjacency_matrix(sample_pa(p, m = 1, directed = FALSE))
 }
 
 #' @description generates a community structure attachment graph
 #' @param prob probability of belonging to each group in the community
 #' @param prob_in probability of having an edge between 2 nodes from the same group
 #' @param prob_in probability of having an edge between 2 nodes from different groups
-community_graph <- function(p, prob = c(1/2,1/4,1/4), prob_in = 0.5, prob_out = 0.1) {
+community_graph <- function(p, prob = c(1/2,1/4,1/4), prob_in = 0.1, prob_out = 0.05) {
   pref_mat <- matrix(prob_out, length(prob), length(prob))
   diag(pref_mat) <- prob_in
   graph_mat <- as_adjacency_matrix(sample_sbm(p,
@@ -49,13 +49,27 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
     omega_tilde <- G * v
     omega <- omega_tilde + diag(abs(min(eigen(omega_tilde)$values)) + u, p, p)
     # Ensuring that the network is not full for AUC to make sense
-    if(min(omega) > 0){ # Ensuring that the network has 0s for AUC to make sense
+    if(min(omega) > 0){
       off_diag_indices <- which(row(matrix(1:p, p, p)) != col(matrix(1:p, p, p)), arr.ind = TRUE)
       selected_index <- off_diag_indices[sample(nrow(off_diag_indices), 1), ]
       omega[selected_index[["row"]], selected_index[["col"]]] <- 0
       omega[selected_index[["col"]], selected_index[["row"]]] <- 0
     }
-    cond <- all(eigen(omega)$values > 0)
+
+    # Including some variability + negative values in omega
+    upper <- upper.tri(omega, diag = FALSE)
+    pos_upper <- omega[upper] > 0
+    upper_pos <- matrix(FALSE, nrow = p, ncol = p)
+    upper_pos[upper] <- pos_upper
+    omega[upper_pos] <- rnorm(sum(upper_pos), mean = omega[upper_pos], sd = 0.05)
+    omega[t(upper_pos)] <- omega[upper_pos]
+    # prob <- runif(sum(upper_pos))
+    # to_negate <- prob < 0.4
+    # omega[upper_pos][to_negate] <- -omega[upper_pos][to_negate]
+    # omega[t(upper_pos)][to_negate] <- -omega[t(upper_pos)][to_negate]
+
+    cond <- ! is.complex(eigen(omega)$values )
+    if(cond) cond <- all(eigen(omega)$values > 0)
   }
   as.matrix(omega)
 }

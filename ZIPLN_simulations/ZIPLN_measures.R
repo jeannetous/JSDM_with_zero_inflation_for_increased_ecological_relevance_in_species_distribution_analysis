@@ -82,10 +82,12 @@ get_measures <- function(PLN_model, params, model_selection = NULL,
   }
 
   omega_hat <- model$model_par$Omega
+  omega_rmse <- Metrics::rmse(omega_hat, params$Omega)
   ## get metrics
   if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
   res <- c(
     criterion = model_selection,
+    omega_rmse = round(omega_rmse, 2),
     AUC = get_auc(params$Omega, PLN_model),
     rmse_fit = rmse(model$fitted, params$Y),
     roc_metrics(params$Omega, omega_hat)

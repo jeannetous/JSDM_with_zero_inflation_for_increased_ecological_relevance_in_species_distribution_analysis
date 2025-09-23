@@ -20,7 +20,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                                  PLN_formula_ZIvar = NA){
 
   params <- do.call(generate_all_ZIPLN_parameters, simu_params)
-  Y <- simulate_ZIPLN_data(params)
+  Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
+  while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
+    Y <- simulate_ZIPLN_data(params)
+  }
+
+
 
   if(!is.null(params$zi_params)){
     X <- data.frame(params$X, params$zi_params$X0)
@@ -33,7 +38,7 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   ########################## Running PLN model #################################
   t0 = Sys.time()
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
-                      control = PLNnetwork_param(min_ratio = 0.05))
+                      control = PLNnetwork_param(penalize_diagonal = FALSE))
   PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
                                      stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC",
@@ -42,12 +47,10 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   PLN_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_BIC_measures[["time"]] = as.numeric(t_PLN)
 
   ############### Running PLN model with ZI covar, if applicable ###############
-  zi <- ifelse(simu_params$zi_type == "sites", "row",
-               ifelse(simu_params$zi_type == "species", "col", "single") )
   if(!is.na(PLN_formula_ZIvar)){
     t0 = Sys.time()
     myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data,
-                              control = PLNnetwork_param(min_ratio = 0.05))
+                              control = PLNnetwork_param(penalize_diagonal = FALSE))
     PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
                                              stability = 0.8)
     PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC",
@@ -60,9 +63,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
 
 
   ######################### Running ZIPLN model ################################
+  zi <- ifelse(simu_params$zi_type == "sites", "row",
+               ifelse(simu_params$zi_type == "species", "col", "single") )
   t0 = Sys.time()
-  myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = "row",
-                          control = ZIPLNnetwork_param(min_ratio = 0.05))
+
+  myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
+                          control = ZIPLNnetwork_param(penalize_diagonal = FALSE))
   ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
                                        stability = 0.8)
   ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC",
