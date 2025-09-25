@@ -31,13 +31,72 @@ simu_params = list(n = n,
                    min_X0 = 0, max_X0 = 10,
                    max_X0B0 = 0.2)
 
-set.seed(1)
+# PLN_formula <- setting$PLN_formula
+# ZIPLN_formula <- setting$ZIPLN_formula
+# PLN_formula_ZIvar <- setting$PLN_formula_ZIvar
+# simu_params = list(n = setting$n,
+#                    p = setting$p,
+#                    d = 1,
+#                    omega_structure = setting$omega_structure,
+#                    zi_type = setting$zi_type,
+#                    zi_covar_cluster = TRUE,
+#                    min_X = 0, max_X = 10, SNR = 0.75,
+#                    n_mode_zi_proba = setting$n_mode_zi_proba,
+#                    zi_mode_values = setting$zi_mode_values[[1]],
+#                    proba_mode_zi = setting$proba_mode_zi[[1]],
+#                    block_values = setting$block_values,
+#                    row_clusters = NULL,
+#                    col_clusters = NULL,
+#                    row_clusters_proba = setting$row_clusters_proba,
+#                    col_clusters_proba = setting$col_clusters_proba,
+#                    X0 = NULL, B0 = NULL,
+#                    min_X0 = 0, max_X0 = 10,
+#                    max_X0B0 = 0.2)
+#
+# res <- one_ZIPLN_simulation(1, zi_config = zi_config, simu_params = simu_params, PLN_formula = PLN_formula,
+#                             ZIPLN_formula = ZIPLN_formula,
+#                             PLN_formula_ZIvar = PLN_formula_ZIvar)
+#
+# set.seed(1)
 
 PLN_formula <- "Abundance ~ 0 + V1"
 ZIPLN_formula <- "Abundance ~ 0 + V1" # | 0 + VZI1"
 # PLN_formula_ZIvar <- "Abundance ~ 0 " #+ V1 + VZI1
 
+#################### Analyzing ZIPLN simulations output ########################
 
+res2 <- res %>% filter(!if_any(everything(), ~ grepl("^Error in if", .x)))
+res2 <- res2 %>% mutate(across(c(n, p, omega_rmse, AUC, rmse_fit, fallout,
+                                recall, precision, f1_score), as.numeric))
+# AUC
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$AUC)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$AUC)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$AUC)
+
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$AUC)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$AUC)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$AUC)
+
+# F1-score
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$f1_score)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$f1_score)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$f1_score)
+
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$f1_score)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$f1_score)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$f1_score)
+
+
+# Precision
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_1",]$precision)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_2",]$precision)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_3",]$precision)
+
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_1",]$precision)
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_2",]$precision)
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_3",]$precision)
+
+#################### Network plotting functions ################################
 plot_network = function(Omega,
                         type  = "partial_corr",
                         output = "igraph",

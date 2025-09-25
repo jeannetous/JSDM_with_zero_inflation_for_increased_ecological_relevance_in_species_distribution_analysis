@@ -61,14 +61,21 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
     pos_upper <- omega[upper] > 0
     upper_pos <- matrix(FALSE, nrow = p, ncol = p)
     upper_pos[upper] <- pos_upper
-    omega[upper_pos] <- rnorm(sum(upper_pos), mean = omega[upper_pos], sd = 0.05)
-    omega[t(upper_pos)] <- omega[upper_pos]
-    # prob <- runif(sum(upper_pos))
-    # to_negate <- prob < 0.4
-    # omega[upper_pos][to_negate] <- -omega[upper_pos][to_negate]
-    # omega[t(upper_pos)][to_negate] <- -omega[t(upper_pos)][to_negate]
+    to_replace <- rnorm(sum(upper_pos), mean = omega[upper_pos], sd = 0.2)
+    omega[upper_pos] <- unlist(lapply(1:length(to_replace), f <- function(i){
+                                      ifelse(to_replace[[i]] > 0.9 | to_replace[[i]] < 0,
+                                             omega[upper_pos][[i]],
+                                             to_replace[[i]])}))
 
+    omega[upper_pos] <- round(omega[upper_pos], 2)
+    omega <- as.matrix(omega)
+    prob <- runif(sum(upper_pos))
+    to_negate <- prob < 0.4
+    omega[upper_pos][to_negate] <- - omega[upper_pos][to_negate]
+    omega[lower.tri(omega)] <- t(omega)[lower.tri(omega)]
+    # browser()
     cond <- ! is.complex(eigen(omega)$values )
+    # if(cond) cond <- matrixcalc::is.positive.definite(as.matrix(omega))
     if(cond) cond <- all(eigen(omega)$values > 0)
   }
   as.matrix(omega)
@@ -159,7 +166,7 @@ generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
       zi_proba <- matrix(rep(zi_proba_list, n), nrow = n, byrow = T)
     }
   }
-  zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(1, max(0, x)))
+  zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(0.95, max(0, x)))
   return(zi_proba)
 }
 

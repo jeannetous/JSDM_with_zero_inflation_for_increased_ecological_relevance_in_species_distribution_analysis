@@ -26,7 +26,6 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   }
 
 
-
   if(!is.null(params$zi_params)){
     X <- data.frame(params$X, params$zi_params$X0)
   }else{X <- params$X}
@@ -34,11 +33,13 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   params$Y <- simu_data$Abundance
 
 
-
+  # browser()
   ########################## Running PLN model #################################
   t0 = Sys.time()
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
-                      control = PLNnetwork_param(penalize_diagonal = FALSE))
+                      control = PLNnetwork_param(penalize_diagonal = FALSE,
+                                                 min_ratio = 0.01,
+                                                 n_penalties = 50))
   PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
                                      stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC",
@@ -50,7 +51,9 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   if(!is.na(PLN_formula_ZIvar)){
     t0 = Sys.time()
     myPLN_ZIvar <- PLNnetwork(as.formula(PLN_formula_ZIvar), simu_data,
-                              control = PLNnetwork_param(penalize_diagonal = FALSE))
+                              control = PLNnetwork_param(penalize_diagonal = FALSE,
+                                                         min_ratio = 0.01,
+                                                         n_penalties = 50))
     PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
                                              stability = 0.8)
     PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC",
@@ -68,7 +71,9 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   t0 = Sys.time()
 
   myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
-                          control = ZIPLNnetwork_param(penalize_diagonal = FALSE))
+                          control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
+                                                       min_ratio = 0.01,
+                                                       n_penalties = 50))
   ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
                                        stability = 0.8)
   ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC",
@@ -178,17 +183,19 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                           KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
   )
 
+  if(!is.null(n_mode_zi_proba_sites_list)){
+    sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
+                              zi_mode_values  = zi_mode_values_sites_list,
+                              proba_mode_zi   = proba_mode_zi_sites_list,
+                              zi_config = paste0("sites_", 1:length(n_mode_zi_proba_sites_list)))
+  }
 
-  sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
-                            zi_mode_values  = zi_mode_values_sites_list,
-                            proba_mode_zi   = proba_mode_zi_sites_list,
-                            zi_config = paste0("sites_", 1:length(n_mode_zi_proba_sites_list)))
-
-  species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
-                              zi_mode_values  = zi_mode_values_species_list,
-                              proba_mode_zi   = proba_mode_zi_species_list,
-                              zi_config = paste0("species_", 1:length(n_mode_zi_proba_species_list)))
-
+  if(!is.null(n_mode_zi_proba_species_list)){
+    species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
+                                zi_mode_values  = zi_mode_values_species_list,
+                                proba_mode_zi   = proba_mode_zi_species_list,
+                                zi_config = paste0("species_", 1:length(n_mode_zi_proba_species_list)))
+  }
 
 
   settings <- settings %>%
@@ -207,18 +214,21 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
     }) %>%
     ungroup()
 
-  block_values_rows <- do.call(rbind, lapply(seq_along(block_values_list), function(i) {
-    df_tmp <- settings %>% filter(zi_type == "covar")
-    df_tmp$block_values <- rep(list(block_values_list[[i]]), nrow(df_tmp))
-    df_tmp$row_clusters_proba <- rep(list(row_clusters_proba_list[[i]]), nrow(df_tmp))
-    df_tmp$col_clusters_proba <- rep(list(col_clusters_proba_list[[i]]), nrow(df_tmp))
-    df_tmp$zi_config <- rep(paste0("covar_", i), nrow(df_tmp))
-    return(df_tmp)
-  }))
+  if(! is.null(block_values_list)){
+    block_values_rows <- do.call(rbind, lapply(seq_along(block_values_list), function(i) {
+      df_tmp <- settings %>% filter(zi_type == "covar")
+      df_tmp$block_values <- rep(list(block_values_list[[i]]), nrow(df_tmp))
+      df_tmp$row_clusters_proba <- rep(list(row_clusters_proba_list[[i]]), nrow(df_tmp))
+      df_tmp$col_clusters_proba <- rep(list(col_clusters_proba_list[[i]]), nrow(df_tmp))
+      df_tmp$zi_config <- rep(paste0("covar_", i), nrow(df_tmp))
+      return(df_tmp)
+    }))
 
-  settings <- settings %>% filter(zi_type != "covar")
-  settings <- settings %>% mutate(block_values = NA, row_clusters_proba = NA, col_clusters_proba = NA)
-  settings <- rbind(settings, block_values_rows)
+    settings <- settings %>% filter(zi_type != "covar")
+    settings <- settings %>% mutate(block_values = NA, row_clusters_proba = NA, col_clusters_proba = NA)
+    settings <- rbind(settings, block_values_rows)
+  }else{settings$block_values <- NA
+        settings$row_clusters_proba <- NA ; settings$col_clusters_proba <- NA}
 
   settings$PLN_formula <- "Abundance ~ 0 + V1"
   settings$ZIPLN_formula <- "Abundance ~ 0 + V1"
@@ -263,6 +273,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
       ZIPLN_formula = ZIPLN_formula,
       PLN_formula_ZIvar = PLN_formula_ZIvar,
     )})
+  final_res <- final_res[sapply(final_res, function(df) ncol(df) > 1)]
   final_res <- do.call(rbind, final_res) %>% as_tibble()
   final_res
 }

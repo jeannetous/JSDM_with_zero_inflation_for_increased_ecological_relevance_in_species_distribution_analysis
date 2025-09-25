@@ -63,6 +63,24 @@ get_auc <- function(omega_true, PLN_model){
   return(auc(recall_unique, fallout_unique))
 }
 
+#' @description plots the ROC curve plot (True Positive Rate as a function
+#' of the False Positive Rate) of a model with different penalties
+#' @param omega_true true precision matrix
+#' @param PLN_model fitted PLN model (with multiple penalties)
+plot_roc_curve <- function(omega_true, PLN_model){
+  fallout <- c() ; recall <- c()
+  for(pen in PLN_model$penalties){
+    omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
+    res <- roc_metrics(omega_true, omega_estimate)
+    if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
+      fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
+    }
+  }
+  if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
+  # One value of fallout may correspond to different recall values depending on the penalty
+  plot(recall, fallout)
+}
+
 #' @description computes a collection of measures associated to a given PLN model
 #' @param PLN_model fitted PLN model (with multiple penalties)
 #' @param params true parameters under which the data was simulated
