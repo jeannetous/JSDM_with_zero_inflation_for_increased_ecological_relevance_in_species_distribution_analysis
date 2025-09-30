@@ -20,7 +20,7 @@ simu_params = list(n = n,
                    omega_structure = omega_structure,
                    zi_type = zi_type,
                    zi_covar_cluster = TRUE,
-                   min_X = 0, max_X = 10, SNR = 0.75,
+                   min_X = 0, max_X = 5, SNR = 0.9,
                    n_mode_zi_proba = n_mode_zi_proba,
                    zi_mode_values = zi_mode_values,
                    proba_mode_zi = proba_mode_zi,
@@ -33,6 +33,7 @@ simu_params = list(n = n,
                    min_X0 = 0, max_X0 = 10,
                    max_X0B0 = 0.2)
 
+res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
 # PLN_formula <- setting$PLN_formula

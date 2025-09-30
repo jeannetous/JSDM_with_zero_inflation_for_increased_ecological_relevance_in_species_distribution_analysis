@@ -4,7 +4,7 @@ library(Metrics)
 #' an inferred network (precision matrices here) given the true one
 #' @param omega_true true precision matrix
 #' @param omega_estimate estimated precision matrix
-roc_metrics <- function(omega_true, omega_estimate){
+roc_metrics <- function(omega_estimate, omega_true){
 
   diag(omega_true) <- 0 ; diag(omega_estimate) <- 0
 
@@ -38,6 +38,8 @@ roc_metrics <- function(omega_true, omega_estimate){
 #' @param recall list of recall values
 #' @param fallout list of corresponding fallout values
 auc <- function(recall, fallout){
+  recall <- c(order(recall, decreasing = FALSE), 1)
+  fallout <- c(order(fallout, decreasing = FALSE), 1)
   return(sum(diff(fallout) * (recall[-1] + recall[-length(recall)]) / 2))
 }
 
@@ -46,21 +48,29 @@ auc <- function(recall, fallout){
 #' @param omega_true true precision matrix
 #' @param PLN_model fitted PLN model (with multiple penalties)
 get_auc <- function(omega_true, PLN_model){
-  fallout <- c() ; recall <- c()
-  for(pen in PLN_model$penalties){
-    omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
-    res <- roc_metrics(omega_true, omega_estimate)
-    if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
-      fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
-    }
-  }
-  if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
-  # One value of fallout may correspond to different recall values depending on the penalty
-  fallout_unique <- unique(fallout) ; recall_unique <- c()
-  for(x in fallout_unique){
-    recall_unique <- c(recall_unique, max(recall[which(fallout == x)]))
-  }
-  return(auc(recall_unique, fallout_unique))
+  # fallout <- c() ; recall <- c()
+  # for(pen in PLN_model$penalties){
+  #   omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
+  #   res <- roc_metrics(omega_estimate, omega_true)
+  #   if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
+  #     fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
+  #   }
+  # }
+  # if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
+  #
+  # # One value of fallout may correspond to different recall values depending on the penalty
+  # fallout_unique <- unique(fallout) ; recall_unique <- c()
+  # for(x in fallout_unique){
+  #   recall_unique <- c(recall_unique, max(recall[which(fallout == x)]))
+  # }
+  # browser()
+  #
+  # return(auc(recall_unique, fallout_unique))
+
+  roc_ <- PLN_model$models %>%
+    map("model_par") %>% map("Omega") %>%
+    map_df(roc_metrics, omega_true)
+  auc(roc_$recall, roc_$fallout)
 }
 
 #' @description plots the ROC curve plot (True Positive Rate as a function
@@ -68,17 +78,21 @@ get_auc <- function(omega_true, PLN_model){
 #' @param omega_true true precision matrix
 #' @param PLN_model fitted PLN model (with multiple penalties)
 plot_roc_curve <- function(omega_true, PLN_model){
-  fallout <- c() ; recall <- c()
-  for(pen in PLN_model$penalties){
-    omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
-    res <- roc_metrics(omega_true, omega_estimate)
-    if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
-      fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
-    }
-  }
-  if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
-  # One value of fallout may correspond to different recall values depending on the penalty
-  plot(recall, fallout)
+  # fallout <- c() ; recall <- c()
+  # for(pen in PLN_model$penalties){
+  #   omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
+  #   res <- roc_metrics(omega_true, omega_estimate)
+  #   if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
+  #     fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
+  #   }
+  # }
+  # if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
+  # # One value of fallout may correspond to different recall values depending on the penalty
+  # plot(recall, fallout)
+  roc_ <- PLN_model$models %>%
+    map("model_par") %>% map("Omega") %>%
+    map_df(roc_metrics, omega_true)
+  plot(roc_$fallout, roc_$recall)
 }
 
 #' @description computes a collection of measures associated to a given PLN model
@@ -91,24 +105,23 @@ get_measures <- function(PLN_model, params, model_selection = NULL,
                          stability = 0.8, AUC = NULL) {
   # Select best sparsity level according to the chosen criterion
 
-  if(is.numeric(model_selection)){
+  if (is.numeric(model_selection)){
     model <- PLN_model$getModel(model_selection)
-  }else{
-    if(model_selection == "StARS"){
+  } else {
+    if (model_selection == "StARS"){
       model <- PLN_model$getBestModel(model_selection, stability)
-    }else{model <- PLN_model$getBestModel(model_selection)}
+    } else {model <- PLN_model$getBestModel(model_selection)}
   }
 
   omega_hat <- model$model_par$Omega
-  omega_rmse <- Metrics::rmse(omega_hat, params$Omega)
   ## get metrics
-  if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
+  # if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
   res <- c(
     criterion = model_selection,
-    omega_rmse = round(omega_rmse, 2),
+    omega_rmse = Metrics::rmse(omega_hat, params$Omega),
     AUC = get_auc(params$Omega, PLN_model),
-    rmse_fit = rmse(model$fitted, params$Y),
-    roc_metrics(params$Omega, omega_hat)
+    rmse_fit = Metrics::rmse(model$fitted, params$Y),
+    roc_metrics(omega_hat, params$Omega)
   )
   res
 }

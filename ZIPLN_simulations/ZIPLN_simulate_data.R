@@ -79,13 +79,14 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
 #' @param zi_proba matrix of zero-inflation probabilities
 simulate_ZIPLN_data_fixed_parameters <- function(Sigma, X, B, zi_proba){
   n <- nrow(X) ; p <- nrow(Sigma)
-  Y = matrix(rep(1, n*p), nrow=n)
   W = mvrnorm(n, mu=matrix(rep(0, p), p, 1), Sigma = Sigma)
-  for(j in 1:p){
-    for(i in 1:n){ Y[i, j] = rpois(1, exp(t(X[i,]) %*% B[,j] + W[i,j])[1,])}
-  }
+  # Y = matrix(rep(1, n*p), nrow=n)
+  # for(j in 1:p){
+  #   for(i in 1:n){ Y[i, j] = rpois(1, exp(t(X[i,]) %*% B[,j] + W[i,j])[1,])}
+  # }
+  Y <- matrix(rpois(n*p, as.vector(exp(X %*% B + W))), n, p)
   Y <- add_zero_inflation(Y, zi_proba)
-  return(Y)
+  Y
 }
 
 #' @description simulates data under the ZIPLN model for a list of fixed parameters

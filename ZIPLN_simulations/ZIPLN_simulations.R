@@ -25,11 +25,10 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
     Y <- simulate_ZIPLN_data(params)
   }
 
-
   if(!is.null(params$zi_params)){
     X <- data.frame(params$X, params$zi_params$X0)
   }else{X <- params$X}
-  simu_data <- prepare_data(Y, X)
+  simu_data <- suppressWarnings(prepare_data(Y, X))
   params$Y <- simu_data$Abundance
 
 
@@ -40,12 +39,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                       control = PLNnetwork_param(penalize_diagonal = FALSE,
                                                  min_ratio = 0.01,
                                                  n_penalties = 50))
-  PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
-                                     stability = 0.8)
-  PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC",
-                                   AUC = PLN_StARS_measures[["AUC"]])
+  # PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
+  #                                    stability = 0.8)
+  PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC")#,
+                                   # AUC = PLN_StARS_measures[["AUC"]])
   t_PLN = Sys.time() - t0
-  PLN_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_BIC_measures[["time"]] = as.numeric(t_PLN)
+  # PLN_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_BIC_measures[["time"]] = as.numeric(t_PLN)
 
   ############### Running PLN model with ZI covar, if applicable ###############
   if(!is.na(PLN_formula_ZIvar)){
@@ -54,12 +53,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                               control = PLNnetwork_param(penalize_diagonal = FALSE,
                                                          min_ratio = 0.01,
                                                          n_penalties = 50))
-    PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
-                                             stability = 0.8)
-    PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC",
-                                           AUC = PLN_ZIvar_StARS_measures[["AUC"]])
+    # PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
+    #                                          stability = 0.8)
+    PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC")#,
+                                           # AUC = PLN_ZIvar_StARS_measures[["AUC"]])
     t_PLN_ZIvar = Sys.time() - t0
-    PLN_ZIvar_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_ZIvar_BIC_measures[["time"]] = as.numeric(t_PLN_ZIvar)
+    # PLN_ZIvar_StARS_measures[["time"]] = as.numeric(t_PLN) ; PLN_ZIvar_BIC_measures[["time"]] = as.numeric(t_PLN_ZIvar)
   }else{
     PLN_ZIvar_StARS_measures <- NULL ; PLN_ZIvar_BIC_measures <- NULL
   }
@@ -74,25 +73,31 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                           control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
                                                        min_ratio = 0.01,
                                                        n_penalties = 50))
-  ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
-                                       stability = 0.8)
-  ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC",
-                                     AUC = ZIPLN_StARS_measures[["AUC"]])
+  # ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
+  #                                      stability = 0.8)
+  ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC")#,
+                                     # AUC = ZIPLN_StARS_measures[["AUC"]])
   t_ZIPLN = Sys.time() - t0
 
-  ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN) ; ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
+  # ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN) ; ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
 
   ################# Merging all the measures in one data frame #################
-  measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
-                       c(method = "PLN", PLN_BIC_measures),
-                       c(method = "ZIPLN", ZIPLN_StARS_measures),
+  # measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
+  #                      c(method = "PLN", PLN_BIC_measures),
+  #                      c(method = "ZIPLN", ZIPLN_StARS_measures),
+  #                      c(method = "ZIPLN", ZIPLN_BIC_measures)
+  # )
+
+  measure_rows <- list(c(method = "PLN", PLN_BIC_measures),
                        c(method = "ZIPLN", ZIPLN_BIC_measures)
   )
 
   if(!is.na(PLN_formula_ZIvar)){
     measure_rows <- c(measure_rows,
-                      list(c(method = "PLN_ZIvar", PLN_ZIvar_StARS_measures),
-                           c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
+                      list(c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
+    # measure_rows <- c(measure_rows,
+    #                   list(c(method = "PLN_ZIvar", PLN_ZIvar_StARS_measures),
+    #                        c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
   }
   res <- as.data.frame(cbind(simu = simu, n = simu_params$n, p = simu_params$p,
                              omega_structure = simu_params$omega_structure,
