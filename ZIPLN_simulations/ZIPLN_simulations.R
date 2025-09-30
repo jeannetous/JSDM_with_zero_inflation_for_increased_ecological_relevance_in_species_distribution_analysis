@@ -115,7 +115,7 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
 #' @param mc.cores number of cores to run the simulations on in parallel
 multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
                                        PLN_formula, ZIPLN_formula,
-                                       PLN_formula_ZIvar = NULL,
+                                       PLN_formula_ZIvar = NA,
                                        mc.cores = max(1, parallel::detectCores() - 2)){
   cat("Settings: (n, p, omega structure, zi type) = (",simu_params$n, simu_params$p,
       simu_params$omega_structure, simu_params$zi_type, ")\n")

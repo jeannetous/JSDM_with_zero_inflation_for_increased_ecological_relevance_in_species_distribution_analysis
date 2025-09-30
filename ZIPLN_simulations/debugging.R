@@ -1,6 +1,6 @@
 n = 300 ; p = 20
 min_X = 0;   max_X = 10; SNR = 0.75
-omega_structure = "community"
+omega_structure = "erdos_renyi"
 
 # zi_type = "sites"
 # n_mode_zi_proba = 3
@@ -9,7 +9,7 @@ omega_structure = "community"
 
 zi_type = "species"
 n_mode_zi_proba = 4
-zi_mode_values = c(0, 0.3, 0.6, 0.9)
+zi_mode_values = 0.5 * zi_mode_values_species_ref
 proba_mode_zi = c(0.4, 0.15, 0.15, 0.3)
 
 simu_params = list(n = n,
@@ -67,34 +67,36 @@ ZIPLN_formula <- "Abundance ~ 0 + V1" # | 0 + VZI1"
 
 res2 <- res %>% filter(!if_any(everything(), ~ grepl("^Error in if", .x)))
 res2 <- res2 %>% mutate(across(c(n, p, omega_rmse, AUC, rmse_fit, fallout,
-                                recall, precision, f1_score), as.numeric))
-# AUC
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$AUC)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$AUC)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$AUC)
+                                 recall, precision, f1_score), as.numeric))
+zi_type = "species"
 
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$AUC)
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$AUC)
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$AUC)
+# AUC
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$AUC)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$AUC)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$AUC)
+
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$AUC)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$AUC)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$AUC)
 
 # F1-score
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$f1_score)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$f1_score)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$f1_score)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$f1_score)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$f1_score)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$f1_score)
 
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_1",]$f1_score)
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_2",]$f1_score)
-median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == "sites_3",]$f1_score)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$f1_score)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$f1_score)
+median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$f1_score)
 
 
 # Precision
-median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_1",]$precision)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_2",]$precision)
-median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == "sites_3",]$precision)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_1"),]$precision)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_2"),]$precision)
+median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_3"),]$precision)
 
-median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_1",]$precision)
-median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_2",]$precision)
-median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == "sites_3",]$precision)
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_1"),]$precision)
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_2"),]$precision)
+median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_3"),]$precision)
 
 #################### Network plotting functions ################################
 plot_network = function(Omega,
