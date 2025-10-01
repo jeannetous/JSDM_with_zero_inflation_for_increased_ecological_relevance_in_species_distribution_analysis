@@ -39,7 +39,7 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   # PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
   #                                    stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC") #,
-                                   # AUC = PLN_StARS_measures[["AUC"]])
+  # AUC = PLN_StARS_measures[["AUC"]])
   t_PLN = Sys.time() - t0
   # PLN_StARS_measures[["time"]] = as.numeric(t_PLN)
   PLN_BIC_measures[["time"]] = as.numeric(t_PLN)
@@ -54,7 +54,7 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
     # PLN_ZIvar_StARS_measures <- get_measures(myPLN_ZIvar, params, model_selection = "StARS",
     #                                          stability = 0.8)
     PLN_ZIvar_BIC_measures <- get_measures(myPLN_ZIvar, params, model_selection = "BIC")#,
-                                           # AUC = PLN_ZIvar_StARS_measures[["AUC"]])
+    # AUC = PLN_ZIvar_StARS_measures[["AUC"]])
     t_PLN_ZIvar = Sys.time() - t0
     # PLN_ZIvar_StARS_measures[["time"]] = as.numeric(t_PLN)
     PLN_ZIvar_BIC_measures[["time"]] = as.numeric(t_PLN_ZIvar)
@@ -62,37 +62,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
     PLN_ZIvar_StARS_measures <- NULL ; PLN_ZIvar_BIC_measures <- NULL
   }
 
-
-  ######################### Running ZIPLN model ################################
-  # zi <- ifelse(simu_params$zi_type == "sites", "row",
-  #              ifelse(simu_params$zi_type == "species", "col", "single") )
-  # t0 = Sys.time()
-  #
-  # myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
-  #                         control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
-  #                                                      min_ratio = 0.01,
-  #                                                      n_penalties = 50))
-  # ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
-  #                                      stability = 0.8)
-  # ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC")#,
-  #                                    # AUC = ZIPLN_StARS_measures[["AUC"]])
-  # t_ZIPLN = Sys.time() - t0
-
-  # ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN)
-  # ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
-
-  ################# Merging all the measures in one data frame #################
-  # measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
-  #                      c(method = "PLN", PLN_BIC_measures),
-  #                      c(method = "ZIPLN", ZIPLN_StARS_measures),
-  #                      c(method = "ZIPLN", ZIPLN_BIC_measures)
-  # )
   measure_rows <- list(c(method = "PLN", PLN_BIC_measures))
 
   if(!is.na(PLN_formula_ZIvar)){
     measure_rows <- c(measure_rows,
                       list(#c(method = "PLN_ZIvar", PLN_ZIvar_StARS_measures),
-                           c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
+                        c(method = "PLN_ZIvar", PLN_ZIvar_BIC_measures)))
   }
   res <- as.data.frame(cbind(simu = simu, n = simu_params$n, p = simu_params$p,
                              omega_structure = simu_params$omega_structure,
@@ -228,7 +203,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
     settings <- settings %>% mutate(block_values = NA, row_clusters_proba = NA, col_clusters_proba = NA)
     settings <- rbind(settings, block_values_rows)
   }else{settings$block_values <- NA
-        settings$row_clusters_proba <- NA ; settings$col_clusters_proba <- NA}
+  settings$row_clusters_proba <- NA ; settings$col_clusters_proba <- NA}
 
   settings$PLN_formula <- "Abundance ~ 0 + V1"
   settings$ZIPLN_formula <- "Abundance ~ 0 + V1"

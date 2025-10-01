@@ -214,7 +214,7 @@ generate_discrete_X <- function(n, d, n_cat_values, row_clusters = NULL){
 #' @param X covariates matric
 #' @param Sigma variance-covariance matrix used in the model
 #' @param SNR signal to noise ratio, ratio between Sigma's variance and that of XB
-generate_B <- function(p, X, Sigma, SNR = 0.75){
+generate_B <- function(p, X, Sigma, SNR = 0.1){
   d <- ncol(X)
   B <- matrix(rep(1, d*p), nrow=d)
   for(dim in 1:d){B[dim,] = runif(p, min=0, max = 1)}

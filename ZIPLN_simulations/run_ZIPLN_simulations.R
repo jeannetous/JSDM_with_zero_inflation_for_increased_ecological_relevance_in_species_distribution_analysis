@@ -62,25 +62,25 @@ row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
 col_clusters_proba_ref <- rep(0.0833, 12)
 
 ############################ Simulations parameters ############################
-n_simu = 3
+n_simu = 50
 n_list = c(300)
 p_list = c(20) #, 100)
-omega_structure_list = c("erdos_renyi") #, "community", "preferential_attachment")
-zi_type_list =  c("sites")#, "species")#, "covar")
+omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
+zi_type_list =  c("sites", "species")#, "covar")
 
-n_mode_zi_proba_sites_list = c(3)#, 3, 3)
+n_mode_zi_proba_sites_list = c(3, 3, 3)
 zi_mode_values_sites_list = list(0.1 * zi_mode_values_sites_ref,
                                  0.5 * zi_mode_values_sites_ref,
                                  zi_mode_values_sites_ref)
-proba_mode_zi_sites_list = list(proba_mode_zi_values_sites_ref) #,
-                                # proba_mode_zi_values_sites_ref,
-                                # proba_mode_zi_values_sites_ref)
+proba_mode_zi_sites_list = list(proba_mode_zi_values_sites_ref,
+                                proba_mode_zi_values_sites_ref,
+                                proba_mode_zi_values_sites_ref)
 
 
-n_mode_zi_proba_species_list = c(4, 4)#, 4)
+n_mode_zi_proba_species_list = c(4, 4, 4)
 zi_mode_values_species_list = list(0.1 * zi_mode_values_species_ref,
-                                   0.5 * zi_mode_values_species_ref)#,
-                                   # zi_mode_values_species_ref)
+                                   0.5 * zi_mode_values_species_ref,
+                                   zi_mode_values_species_ref)
 proba_mode_zi_species_list = list(proba_mode_zi_values_species_ref)
 
 block_values_list = list(0.1 * block_values_ref,
@@ -107,7 +107,7 @@ res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
                              mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
-# write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_2_ER.csv")
+write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_1.csv")
 
 
 all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
@@ -119,7 +119,7 @@ all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
                    n_mode_zi_proba_species_list = n_mode_zi_proba_species_list,
                    zi_mode_values_species_list = zi_mode_values_species_list,
                    proba_mode_zi_species_list = proba_mode_zi_species_list)
-# writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_2_parameters.txt")
+writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_1_parameters.txt")
 
 ############################ Debugging bits ####################################
 
