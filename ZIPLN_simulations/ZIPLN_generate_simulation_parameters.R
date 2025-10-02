@@ -77,6 +77,7 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
     cond <- ! is.complex(eigen(omega)$values )
     # if(cond) cond <- matrixcalc::is.positive.definite(as.matrix(omega))
     if(cond) cond <- all(eigen(omega)$values > 0)
+    if(cond) cond <- max(abs(solve(omega))) < 3
   }
   as.matrix(omega)
 }
@@ -191,8 +192,10 @@ generate_X <- function(n, d, min_X = 0, max_X = 10, add_intercept = TRUE){
   if(length(max_X == 1)) max_X <- rep(max_X, d)
   X = matrix(rep(1, n * d), nrow=n)
   for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
-  colnames(X) <- unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x))))
-  if(add_intercept) X <- cbind(rep(1, n), X)
+  if(add_intercept){
+    X <- cbind(rep(1, n), X)
+    colnames(X) <- c("Intercept", unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x)))))
+  }else{colnames(X) <- unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x))))}
   return(X)
 }
 

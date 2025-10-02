@@ -33,11 +33,11 @@ row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
 col_clusters_proba_ref <- rep(0.0833, 12)
 
 ############################ Simulations parameters ############################
-n_simu = 3
+n_simu = 30
 n_list = c(300)
 p_list = c(20) #, 100)
-omega_structure_list = c("erdos_renyi")#, "community", "preferential_attachment")
-zi_type_list =  c("sites")#, "species")
+omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
+zi_type_list =  c("sites", "species")
 
 n_mode_zi_proba_sites_list = c(3, 3, 3)
 zi_mode_values_sites_list = list(0.1 * zi_mode_values_sites_ref,
@@ -79,11 +79,11 @@ res <- grid_PLN_simulation(n_simu, n_list, p_list, add_intercept = TRUE,
                            mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
-# write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_2.csv")
+write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_2.csv")
 
 
 all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
-                   add_intercept = add_intercept,
+                   add_intercept = "TRUE",
                    omega_structure_list = omega_structure_list,
                    zi_type_list = zi_type_list,
                    n_mode_zi_proba_sites_list = n_mode_zi_proba_sites_list,
@@ -92,7 +92,7 @@ all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
                    n_mode_zi_proba_species_list = n_mode_zi_proba_species_list,
                    zi_mode_values_species_list = zi_mode_values_species_list,
                    proba_mode_zi_species_list = proba_mode_zi_species_list)
-# writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_2_parameters.txt")
+writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_PLNonly_BIConly_2_parameters.txt")
 
 ############################ Debugging bits ####################################
 
@@ -106,6 +106,7 @@ min_X = 0;   max_X = 10; SNR = 0.75
 omega_structure = "erdos_renyi"
 
 zi_type = "sites"
+zi_config = "sites_1"
 n_mode_zi_proba = 3
 zi_mode_values =  c(0.2, 0.4, 0.6)
 proba_mode_zi = c(0.3, 0.3, 0.4)
@@ -130,5 +131,5 @@ simu_params = list(n = n,
                    min_X0 = 0, max_X0 = 10,
                    max_X0B0 = 0.2)
 
-test <- one_PLN_simulation(simu = 1, zi_config, simu_params,
-                          PLN_formula, PLN_formula_ZIvar = NA)
+# test <- one_PLN_simulation(simu = 1, zi_config, simu_params,
+#                           PLN_formula, PLN_formula_ZIvar = NA)

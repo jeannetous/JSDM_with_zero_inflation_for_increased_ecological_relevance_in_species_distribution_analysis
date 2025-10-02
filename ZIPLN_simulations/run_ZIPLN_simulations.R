@@ -1,5 +1,5 @@
 ############################ Loading useful libraries ###########################
-source("ZIPLN_simulations.R")
+source("PLN_simulations.R")
 set.seed(2)
 ############################ Reference ZI values from real data - ZERO COUNTS ##
 ##### SITES #####
@@ -65,8 +65,8 @@ col_clusters_proba_ref <- rep(0.0833, 12)
 n_simu = 3
 n_list = c(300)
 p_list = c(20) #, 100)
-omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
-zi_type_list =  c("sites", "species")#, "covar")
+omega_structure_list = c("erdos_renyi")#, "community", "preferential_attachment")
+zi_type_list =  c("sites")#, "species")#, "covar")
 
 n_mode_zi_proba_sites_list = c(3, 3, 3)
 zi_mode_values_sites_list = list(0.1 * zi_mode_values_sites_ref,
@@ -95,6 +95,7 @@ col_clusters_proba_list = list(col_clusters_proba_ref, col_clusters_proba_ref)#,
 
 ############################ Running simulations ###############################
 res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
+                             add_intercept = TRUE,
                              zi_type_list, n_mode_zi_proba_sites_list = n_mode_zi_proba_sites_list,
                              zi_mode_values_sites_list = zi_mode_values_sites_list,
                              proba_mode_zi_sites_list = zi_mode_values_sites_list,

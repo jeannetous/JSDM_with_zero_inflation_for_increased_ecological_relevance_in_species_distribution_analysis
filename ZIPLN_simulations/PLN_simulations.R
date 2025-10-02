@@ -14,26 +14,31 @@ source("ZIPLN_simulate_data.R")
 #' only if zi_type = covar. Should look like "Abundance ~ 0 + V1 +... + VZI1 + ..."
 one_PLN_simulation <- function(simu = 1, zi_config, simu_params,
                                PLN_formula, PLN_formula_ZIvar = NA){
-  params <- do.call(generate_all_ZIPLN_parameters, simu_params)
-  Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
-  while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
-    Y <- simulate_ZIPLN_data(params)
+  M <- 1001
+  while(M > 1000){
+    params <- do.call(generate_all_ZIPLN_parameters, simu_params)
+    Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
+    while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
+      Y <- simulate_ZIPLN_data(params)
+    }
+    M <- max(Y[!is.na(Y)])
   }
 
   if(!is.null(params$zi_params)){
     X <- data.frame(params$X, params$zi_params$X0)
   }else{X <- params$X}
-  X <- X[-which(rowSums(Y) < 10),] ; Y <- Y[-which(rowSums(Y) < 10),]
 
   simu_data <- prepare_data(Y, X)
   params$Y <- simu_data$Abundance
-
+  print("------------")
+  print(max(Y))
+  print("------------")
   ########################## Running PLN model #################################
   t0 = Sys.time()
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
                       control = PLNnetwork_param(penalize_diagonal = FALSE,
                                                  min_ratio = 0.01,
-                                                 n_penalties = 50))
+                                                 n_penalties = 20))
   # PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
   #                                    stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC") #,
