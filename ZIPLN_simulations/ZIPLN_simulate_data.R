@@ -29,7 +29,8 @@ library(MASS)
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
 #' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
-generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_renyi",
+generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
+                                          omega_structure = "erdos_renyi",
                                           zi_type = c("covar", "sites", "species"),
                                           zi_covar_cluster = FALSE,
                                           min_X = 0, max_X = 10, SNR = 0.75,
@@ -46,7 +47,7 @@ generate_all_ZIPLN_parameters <- function(n, p, d, omega_structure = "erdos_reny
                                           max_X0B0 = -0.2){
   Omega <- generate_omega(p, omega_structure, v, u)
   Sigma <- chol2inv(chol(Omega))
-  X <- generate_X(n, d, min_X, max_X)
+  X <- generate_X(n, d, min_X, max_X, add_intercept)
   B <- generate_B(p, X, Sigma, SNR)
 
   if(zi_type == "covar"){

@@ -165,7 +165,8 @@ multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete), fixed
 #' along the grid
 #' @param mc.cores number of cores to run the simulations on in parallel
-grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
+grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
+                                  omega_structure_list,
                                   zi_type_list, n_mode_zi_proba_sites_list,
                                   zi_mode_values_sites_list,
                                   proba_mode_zi_sites_list,
@@ -230,15 +231,21 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
   }else{settings$block_values <- NA
         settings$row_clusters_proba <- NA ; settings$col_clusters_proba <- NA}
 
-  settings$PLN_formula <- "Abundance ~ 0 + V1"
-  settings$ZIPLN_formula <- "Abundance ~ 0 + V1"
-  settings[settings$zi_type == "covar",]$ZIPLN_formula <- "Abundance ~ 0 + V1 | 0 + VZI1"
   settings$PLN_formula_ZIvar <- NA
-  settings[settings$zi_type == "covar",]$PLN_formula_ZIvar <- "Abundance ~ 0 + V1 + VZI1"
-
+  if(add_intercept){
+    settings$PLN_formula <- "Abundance ~ 0 + V1"
+    settings$ZIPLN_formula <- "Abundance ~ 0 + V1"
+    settings[settings$zi_type == "covar",]$ZIPLN_formula <- "Abundance ~ 0 + V1 | 0 + VZI1"
+    settings[settings$zi_type == "covar",]$PLN_formula_ZIvar <- "Abundance ~ 0 + V1 + VZI1"
+  }else{
+    settings$PLN_formula <- "Abundance ~ 1 + V1"
+    settings$ZIPLN_formula <- "Abundance ~ 1 + V1"
+    settings[settings$zi_type == "covar",]$ZIPLN_formula <- "Abundance ~ 1 + V1 | 0 + VZI1"
+    settings[settings$zi_type == "covar",]$PLN_formula_ZIvar <- "Abundance ~ 1 + V1 + VZI1"
+  }
+  settings$add_intercept <- add_intercept
   settings$n_simu <- n_simu
 
-  # browser()
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
                                                    n_mode_zi_proba, zi_mode_values,
                                                    proba_mode_zi, zi_config,
@@ -247,11 +254,13 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                                                    col_clusters_proba,
                                                    PLN_formula,
                                                    ZIPLN_formula, PLN_formula_ZIvar,
+                                                   add_intercept,
                                                    n_simu){
 
     simu_params = list(n = n,
                        p = p,
                        d = 1,
+                       add_intercept = add_intercept,
                        omega_structure = omega_structure,
                        zi_type = zi_type,
                        zi_covar_cluster = TRUE,
@@ -267,6 +276,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, omega_structure_list,
                        X0 = NULL, B0 = NULL,
                        min_X0 = min_X0, max_X0 = max_X0,
                        max_X0B0 = max_X0B0)
+
     multiple_ZIPLN_simulations(
       n_simu = n_simu, zi_config = zi_config, simu_params,
       PLN_formula = PLN_formula,

@@ -186,12 +186,13 @@ add_zero_inflation <- function(Y, zi_proba){
 #' @param d number of column in X
 #' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
 #' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
-generate_X <- function(n, d, min_X = 0, max_X = 10){
+generate_X <- function(n, d, min_X = 0, max_X = 10, add_intercept = TRUE){
   if(length(min_X == 1)) min_X <- rep(min_X, d)
   if(length(max_X == 1)) max_X <- rep(max_X, d)
   X = matrix(rep(1, n * d), nrow=n)
   for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
   colnames(X) <- unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x))))
+  if(add_intercept) X <- cbind(rep(1, n), X)
   return(X)
 }
 
