@@ -1,7 +1,7 @@
 set.seed(1)
 source("ZIPLN_simulations.R")
 n = 300 ; p = 20
-min_X = 0;   max_X = 10; SNR = 0.75
+mean_X = 0;   sd_X = 10; SNR = 0.75
 omega_structure = "erdos_renyi"
 
 zi_type = "sites"
@@ -20,7 +20,7 @@ simu_params = list(n = n,
                    omega_structure = omega_structure,
                    zi_type = zi_type,
                    zi_covar_cluster = TRUE,
-                   min_X = 0, max_X = 10, SNR = 10,
+                   mean_X = 0, sd_X = 10, SNR = 10,
                    n_mode_zi_proba = n_mode_zi_proba,
                    zi_mode_values = zi_mode_values,
                    proba_mode_zi = proba_mode_zi,
@@ -30,8 +30,8 @@ simu_params = list(n = n,
                    row_clusters_proba = NULL,
                    col_clusters_proba = NULL,
                    X0 = NULL, B0 = NULL,
-                   min_X0 = 0, max_X0 = 10,
-                   max_X0B0 = 0.2)
+                   mean_X0 = 0, sd_X0 = 10,
+                   sd_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
@@ -49,7 +49,7 @@ res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Ab
 #                    omega_structure = setting$omega_structure,
 #                    zi_type = setting$zi_type,
 #                    zi_covar_cluster = TRUE,
-#                    min_X = 0, max_X = 10, SNR = 0.75,
+#                    mean_X = 0, sd_X = 10, SNR = 0.75,
 #                    n_mode_zi_proba = setting$n_mode_zi_proba,
 #                    zi_mode_values = setting$zi_mode_values[[1]],
 #                    proba_mode_zi = setting$proba_mode_zi[[1]],
@@ -59,8 +59,8 @@ res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Ab
 #                    row_clusters_proba = setting$row_clusters_proba,
 #                    col_clusters_proba = setting$col_clusters_proba,
 #                    X0 = NULL, B0 = NULL,
-#                    min_X0 = 0, max_X0 = 10,
-#                    max_X0B0 = 0.2)
+#                    mean_X0 = 0, sd_X0 = 10,
+#                    sd_X0B0 = 0.2)
 #
 # res <- one_ZIPLN_simulation(1, zi_config = zi_config, simu_params = simu_params, PLN_formula = PLN_formula,
 #                             ZIPLN_formula = ZIPLN_formula,

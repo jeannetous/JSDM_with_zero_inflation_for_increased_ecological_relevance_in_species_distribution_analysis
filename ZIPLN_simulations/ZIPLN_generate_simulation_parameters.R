@@ -114,7 +114,6 @@ generate_X0_B0_cluster <- function(n, p, block_values,
                                    row_clusters_proba = NULL,
                                    col_clusters_proba = NULL) {
 
-  print(block_values)
   a <- nrow(block_values) ; b <- ncol(block_values)
   if(is.null(row_clusters)){
     if(is.null(row_clusters_proba)){
@@ -185,13 +184,14 @@ add_zero_inflation <- function(Y, zi_proba){
 #' @description generates continuous covariates matrix X
 #' @param n number of rows in X
 #' @param d number of column in X
-#' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
-#' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
-generate_X <- function(n, d, min_X = 0, max_X = 10, add_intercept = TRUE){
-  if(length(min_X == 1)) min_X <- rep(min_X, d)
-  if(length(max_X == 1)) max_X <- rep(max_X, d)
+#' @param mean_X minimum value for X, either one single value for X, or a list of length d for each dimension
+#' @param sd_X maximum value for X, either one single value for X, or a list of length d for each dimension
+generate_X <- function(n, d, mean_X = 0, sd_X = 1, add_intercept = TRUE){
+  if(length(mean_X == 1)) mean_X <- rep(mean_X, d)
+  if(length(sd_X == 1)) sd_X <- rep(sd_X, d)
   X = matrix(rep(1, n * d), nrow=n)
-  for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
+  # for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
+  for(dim in 1:d){X[,dim] = rnorm(n, mean_X[[dim]], sd_X[[dim]])}
   if(add_intercept){
     X <- cbind(rep(1, n), X)
     colnames(X) <- c("Intercept", unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x)))))

@@ -121,19 +121,19 @@ multiple_PLN_simulations <- function(n_simu, zi_config, simu_params,
 #' default is equiprobable distributions
 #' @param col_clusters_proba_list list of lists of probabilities for column clusters, used only if col_clusters=NULL,
 #' default is equiprobable distributions
-#' @param min_X minimum value for X, either one single value for X, or a list of
+#' @param mean_X minimum value for X, either one single value for X, or a list of
 #' length d for each dimension, fixed along the grid
-#' @param max_X maximum value for X, either one single value for X, or a list of
+#' @param sd_X maximum value for X, either one single value for X, or a list of
 #' length d for each dimension, fixed along the grid
 #' @param SNR signal to noise ratio, ratio between Sigma's variance and that of
 #' XB, fixed along the grid
-#' #' @param min_X0 minimum value for X0, either one single value for X0, or a
+#' #' @param mean_X0 minimum value for X0, either one single value for X0, or a
 #' list of length d for each dimension, applied only if zi_covar_cluster = FALSE
 #' (otherwise X0 is discrete), fixed along the grid
-#' @param max_X0 maximum value for X0, either one single value for X0, or a
+#' @param sd_X0 maximum value for X0, either one single value for X0, or a
 #' list of length d for each dimension applied only if zi_covar_cluster = FALSE
 #' (otherwise X0 is discrete), fixed along the grid
-#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
+#' @param sd_X0B0 maximum value for the mean of each column of X0 %*% B0
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete), fixed
 #' along the grid
 #' @param mc.cores number of cores to run the simulations on in parallel
@@ -146,8 +146,8 @@ grid_PLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                                 zi_mode_values_species_list,
                                 proba_mode_zi_species_list, block_values_list,
                                 row_clusters_proba_list, col_clusters_proba_list,
-                                min_X = 0,  max_X = 10, SNR = 0.75,
-                                min_X0 = 0, max_X0 = 10, max_X0B0 = -0.2,
+                                mean_X = 0,  sd_X = 10, SNR = 0.75,
+                                mean_X0 = 0, sd_X0 = 10, sd_X0B0 = -0.2,
                                 mc.cores = max(1, parallel::detectCores() - 2)) {
   settings <- expand.grid(n = n_list,
                           p = p_list,
@@ -233,7 +233,7 @@ grid_PLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        omega_structure = omega_structure,
                        zi_type = zi_type,
                        zi_covar_cluster = TRUE,
-                       min_X = min_X, max_X = max_X, SNR = SNR,
+                       mean_X = mean_X, sd_X = sd_X, SNR = SNR,
                        n_mode_zi_proba = n_mode_zi_proba,
                        zi_mode_values = zi_mode_values,
                        proba_mode_zi = proba_mode_zi,
@@ -243,8 +243,8 @@ grid_PLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        row_clusters_proba = row_clusters_proba,
                        col_clusters_proba = col_clusters_proba,
                        X0 = NULL, B0 = NULL,
-                       min_X0 = min_X0, max_X0 = max_X0,
-                       max_X0B0 = max_X0B0)
+                       mean_X0 = mean_X0, sd_X0 = sd_X0,
+                       sd_X0B0 = sd_X0B0)
     multiple_PLN_simulations(
       n_simu = n_simu, zi_config = zi_config, simu_params,
       PLN_formula = PLN_formula,
