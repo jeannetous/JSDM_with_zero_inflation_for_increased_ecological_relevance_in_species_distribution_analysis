@@ -34,7 +34,7 @@ set.seed(2)
 
 ############################ Reference ZI values from real data - ZIPLN ##
 ##### SITES #####
-n_mode_zi_proba_sites_ref = 3
+n_mode_zi_proba_sites_ref = 1
 zi_mode_values_sites_ref = c(0.2, 0.4, 0.6)
 proba_mode_zi_values_sites_ref = c(0.3, 0.3, 0.4)
 
@@ -66,7 +66,7 @@ n_simu = 3
 n_list = c(300)
 p_list = c(20) #, 100)
 omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
-zi_type_list = c( "covar") # c("sites", "species")
+zi_type_list =  c("sites", "species") #c( "covar") #
 
 n_mode_zi_proba_sites_list = c(3, 3, 3)
 zi_mode_values_sites_list = list(0.1 * zi_mode_values_sites_ref,
@@ -104,7 +104,7 @@ res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
                              proba_mode_zi_species_list, block_values_list,
                              row_clusters_proba_list, col_clusters_proba_list,
                              mean_X = 0,  sd_X = 10, SNR = 0.75, mean_X0 = 0,
-                             sd_X0 = 10, sd_X0B0 = -0.2,
+                             sd_X0 = 10, max_X0B0 = -0.2,
                              mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
@@ -147,7 +147,7 @@ ZIPLN_formula <- "Abundance ~ 0 + V1" # | 0 + VZI1"
 #                    col_clusters_proba = setting$col_clusters_proba,
 #                    X0 = NULL, B0 = NULL,
 #                    mean_X0 = mean_X0, sd_X0 = sd_X0,
-#                    sd_X0B0 = sd_X0B0)
+#                    max_X0B0 = max_X0B0)
 
 
 
@@ -171,7 +171,7 @@ ZIPLN_formula <- "Abundance ~ 0 + V1" # | 0 + VZI1"
 #                    col_clusters_proba = NA,
 #                    X0 = NULL, B0 = NULL,
 #                    mean_X0 = 0, sd_X0 = 10,
-#                    sd_X0B0 = 0.2)
+#                    max_X0B0 = 0.2)
 #
 # res <- one_ZIPLN_simulation(1, "sites_1", simu_params,
 #                             PLN_formula, ZIPLN_formula,

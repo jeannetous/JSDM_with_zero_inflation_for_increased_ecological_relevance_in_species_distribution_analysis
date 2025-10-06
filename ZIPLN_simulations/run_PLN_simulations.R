@@ -75,7 +75,7 @@ res <- grid_PLN_simulation(n_simu, n_list, p_list, add_intercept = TRUE,
                            proba_mode_zi_species_list, block_values_list,
                            row_clusters_proba_list, col_clusters_proba_list,
                            mean_X = 0,  sd_X = 1, SNR = 0.75, mean_X0 = 0,
-                           sd_X0 = 10, sd_X0B0 = -0.2,
+                           sd_X0 = 10, max_X0B0 = -0.2,
                            mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
@@ -129,7 +129,7 @@ simu_params = list(n = n,
                    col_clusters_proba = NULL,
                    X0 = NULL, B0 = NULL,
                    mean_X0 = 0, sd_X0 = 10,
-                   sd_X0B0 = 0.2)
+                   max_X0B0 = 0.2)
 
 # test <- one_PLN_simulation(simu = 1, zi_config, simu_params,
 #                           PLN_formula, PLN_formula_ZIvar = NA)

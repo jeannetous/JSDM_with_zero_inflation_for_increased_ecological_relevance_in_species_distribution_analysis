@@ -31,7 +31,7 @@ simu_params = list(n = n,
                    col_clusters_proba = NULL,
                    X0 = NULL, B0 = NULL,
                    mean_X0 = 0, sd_X0 = 10,
-                   sd_X0B0 = 0.2)
+                   max_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
@@ -60,7 +60,7 @@ res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Ab
 #                    col_clusters_proba = setting$col_clusters_proba,
 #                    X0 = NULL, B0 = NULL,
 #                    mean_X0 = 0, sd_X0 = 10,
-#                    sd_X0B0 = 0.2)
+#                    max_X0B0 = 0.2)
 #
 # res <- one_ZIPLN_simulation(1, zi_config = zi_config, simu_params = simu_params, PLN_formula = PLN_formula,
 #                             ZIPLN_formula = ZIPLN_formula,

@@ -48,7 +48,7 @@ simu_params = list(n = n,
                    col_clusters_proba = col_clusters_proba_ref,
                    X0 = NULL, B0 = NULL,
                    mean_X0 = 0, sd_X0 = 10,
-                   sd_X0B0 = 0.2)
+                   max_X0B0 = 0.2)
 
 for(i in 3:200){
   print(i)

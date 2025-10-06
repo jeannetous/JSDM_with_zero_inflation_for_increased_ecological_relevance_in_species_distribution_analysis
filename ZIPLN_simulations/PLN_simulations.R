@@ -133,7 +133,7 @@ multiple_PLN_simulations <- function(n_simu, zi_config, simu_params,
 #' @param sd_X0 maximum value for X0, either one single value for X0, or a
 #' list of length d for each dimension applied only if zi_covar_cluster = FALSE
 #' (otherwise X0 is discrete), fixed along the grid
-#' @param sd_X0B0 maximum value for the mean of each column of X0 %*% B0
+#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete), fixed
 #' along the grid
 #' @param mc.cores number of cores to run the simulations on in parallel
@@ -147,7 +147,7 @@ grid_PLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                                 proba_mode_zi_species_list, block_values_list,
                                 row_clusters_proba_list, col_clusters_proba_list,
                                 mean_X = 0,  sd_X = 10, SNR = 0.75,
-                                mean_X0 = 0, sd_X0 = 10, sd_X0B0 = -0.2,
+                                mean_X0 = 0, sd_X0 = 10, max_X0B0 = -0.2,
                                 mc.cores = max(1, parallel::detectCores() - 2)) {
   settings <- expand.grid(n = n_list,
                           p = p_list,
@@ -244,7 +244,7 @@ grid_PLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        col_clusters_proba = col_clusters_proba,
                        X0 = NULL, B0 = NULL,
                        mean_X0 = mean_X0, sd_X0 = sd_X0,
-                       sd_X0B0 = sd_X0B0)
+                       max_X0B0 = max_X0B0)
     multiple_PLN_simulations(
       n_simu = n_simu, zi_config = zi_config, simu_params,
       PLN_formula = PLN_formula,

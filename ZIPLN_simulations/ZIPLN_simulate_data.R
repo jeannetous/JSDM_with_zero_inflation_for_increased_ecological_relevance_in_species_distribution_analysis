@@ -27,7 +27,7 @@ library(MASS)
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
 #' @param sd_X0 maximum value for X0, either one single value for X0, or a list of length d for each dimension
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
-#' @param sd_X0B0 maximum value for the mean of each column of X0 %*% B0
+#' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
 generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
                                           omega_structure = "erdos_renyi",
@@ -44,7 +44,7 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
                                           col_clusters_proba = NULL,
                                           X0 = NULL, B0 = NULL,
                                           mean_X0 = 0, sd_X0 = 10,
-                                          sd_X0B0 = -0.2){
+                                          max_X0B0 = -0.2){
   Omega <- generate_omega(p, omega_structure, v, u)
   Sigma <- chol2inv(chol(Omega))
   X <- generate_X(n, d, mean_X, sd_X, add_intercept)
@@ -61,7 +61,7 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
       }else{
         X0 <- generate_X(n, d, mean_X0, sd_X0)
         colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
-        B0 <- generate_B0(X0, sd_X0B0)
+        B0 <- generate_B0(X0, max_X0B0)
         zi_params <- list(X0 = X0, B0 = B0)
       }
     }else{zi_params <- list(X0 = X0, B0 = B0)}
