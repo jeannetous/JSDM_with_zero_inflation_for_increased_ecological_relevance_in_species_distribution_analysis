@@ -18,19 +18,17 @@ source("ZIPLN_simulate_data.R")
 one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                                  PLN_formula, ZIPLN_formula,
                                  PLN_formula_ZIvar = NA){
-  params <- do.call(generate_all_ZIPLN_parameters, simu_params)
   Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
   while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
+    params <- do.call(generate_all_ZIPLN_parameters, simu_params)
     Y <- simulate_ZIPLN_data(params)
   }
-
   if(!is.null(params$zi_params)){
     X <- data.frame(params$X, as.factor(params$zi_params$X0))
     colnames(X)[[length(colnames(X))]] <- "VZI1"
   }else{X <- params$X}
   simu_data <- prepare_data(Y, X)
   params$Y <- simu_data$Abundance
-  # browser()
 
   ########################## Running PLN model #################################
   t0 = Sys.time()
@@ -64,12 +62,10 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
     PLN_ZIvar_StARS_measures <- NULL ; PLN_ZIvar_BIC_measures <- NULL
   }
 
-
   ######################### Running ZIPLN model ################################
   zi <- ifelse(simu_params$zi_type == "sites", "row",
                ifelse(simu_params$zi_type == "species", "col", NA) )
   t0 = Sys.time()
-
   myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
                           control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
                                                        min_ratio = 0.01,
@@ -154,16 +150,17 @@ multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
 #' default is equiprobable distributions
 #' @param col_clusters_proba_list list of lists of probabilities for column clusters, used only if col_clusters=NULL,
 #' default is equiprobable distributions
-#' @param mean_X minimum value for X, either one single value for X, or a list of
+#' @param min_X minimum value for X, either one single value for X, or a list of
 #' length d for each dimension, fixed along the grid
-#' @param sd_X maximum value for X, either one single value for X, or a list of
+#' @param max_X maximum value for X, either one single value for X, or a list of
 #' length d for each dimension, fixed along the grid
-#' @param SNR signal to noise ratio, ratio between Sigma's variance and that of
-#' XB, fixed along the grid
-#' @param mean_X0 minimum value for X0, either one single value for X0, or a
+#' @param mean_B mean of the Gaussian distributions B values are drawn from, can be a list with one mean per B dimension
+#' @param sd_B standard deviation of the Gaussian distributions B values are drawn from, can be a list with one sd per B dimension
+#' @param XB_max max value for exp(XB) mean of the Poisson distribution that Y follows
+#' @param min_X0 minimum value for X0, either one single value for X0, or a
 #' list of length d for each dimension, applied only if zi_covar_cluster = FALSE
 #' (otherwise X0 is discrete), fixed along the grid
-#' @param sd_X0 maximum value for X0, either one single value for X0, or a
+#' @param max_X0 maximum value for X0, either one single value for X0, or a
 #' list of length d for each dimension applied only if zi_covar_cluster = FALSE
 #' (otherwise X0 is discrete), fixed along the grid
 #' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
@@ -179,9 +176,11 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                                   zi_mode_values_species_list,
                                   proba_mode_zi_species_list, block_values_list,
                                   row_clusters_proba_list, col_clusters_proba_list,
-                                  mean_X = 0,  sd_X = 1, SNR = 0.75,
-                                  mean_X0 = 0, sd_X0 = 10, max_X0B0 = -0.2,
+                                  min_X = 0,  max_X = 1, mean_B  = 2, sd_B = 1,
+                                  XB_max = 70, min_X0 = 0, max_X0 = 10,
+                                  max_X0B0 = -0.2,
                                   mc.cores = max(1, parallel::detectCores() - 2)) {
+  print("AAAA")
   settings <- expand.grid(n = n_list,
                           p = p_list,
                           omega_structure = omega_structure_list,
@@ -269,7 +268,8 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        omega_structure = omega_structure,
                        zi_type = zi_type,
                        zi_covar_cluster = TRUE,
-                       mean_X = mean_X, sd_X = sd_X, SNR = SNR,
+                       min_X = min_X, max_X = max_X,
+                       mean_B  = mean_B, sd_B = sd_B, XB_max = XB_max,
                        n_mode_zi_proba = n_mode_zi_proba,
                        zi_mode_values = zi_mode_values,
                        proba_mode_zi = proba_mode_zi,
@@ -279,7 +279,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        row_clusters_proba = row_clusters_proba,
                        col_clusters_proba = col_clusters_proba,
                        X0 = NULL, B0 = NULL,
-                       mean_X0 = mean_X0, sd_X0 = sd_X0,
+                       min_X0 = min_X0, max_X0 = max_X0,
                        max_X0B0 = max_X0B0)
 
     multiple_ZIPLN_simulations(

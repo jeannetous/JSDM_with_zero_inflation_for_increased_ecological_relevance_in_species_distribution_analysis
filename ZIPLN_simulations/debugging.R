@@ -1,13 +1,35 @@
 set.seed(1)
 source("ZIPLN_simulations.R")
 n = 300 ; p = 20
-mean_X = 0;   sd_X = 10; SNR = 0.75
+min_X = 0;   max_X = 10; SNR = 0.75
+mean_B  = 2 ; sd_B = 1 ; XB_max = 70
 omega_structure = "erdos_renyi"
 
 zi_type = "sites"
 n_mode_zi_proba = 3
 zi_mode_values =  c(0.2, 0.4, 0.6)
 proba_mode_zi = c(0.3, 0.3, 0.4)
+
+# zi_type = "species"
+# n_mode_zi_proba = 4
+# zi_mode_values = c(0.2, 0.3, 0.6, 0.95)
+# proba_mode_zi = c(0.4, 0.15, 0.15, 0.3)
+
+# zi_type = "covar"
+# block_values_ref <- matrix(c(-0.8, 1.5, 3.2, -0.8, -2,
+#                              -2.2, 7, -1, -2.7, 7,
+#                              -0.7, 7, -1, -0.6, -2,
+#                              -0.7, 7, 7, -3.6, -2,
+#                              7, 7, 7, -1.7, -2,
+#                              7, 7, 0.8, -0.4, -2,
+#                              -2, -4.8, -4.4, -1.9, -2,
+#                              7, -2, 7, -1, -2,
+#                              7, 7, 7, 0.6, -2,
+#                              7, 7, 7, -0.1, -2,
+#                              -0.1, 7, 7, 0, -2,
+#                              7, 7, 7, 0.2, -2 ), nrow = 5)
+# row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
+# col_clusters_proba_ref <- rep(0.0833, 12)
 
 # zi_type = "species"
 # n_mode_zi_proba = 4
@@ -20,22 +42,31 @@ simu_params = list(n = n,
                    omega_structure = omega_structure,
                    zi_type = zi_type,
                    zi_covar_cluster = TRUE,
-                   mean_X = 0, sd_X = 10, SNR = 10,
-                   n_mode_zi_proba = n_mode_zi_proba,
-                   zi_mode_values = zi_mode_values,
-                   proba_mode_zi = proba_mode_zi,
-                   block_values = NULL,
+                   min_X = 0, max_X = 1, mean_B  = 2, sd_B = 1, XB_max = 70,
+                   n_mode_zi_proba = n_mode_zi_proba,#NULL, #
+                   zi_mode_values = zi_mode_values,#NULL, #
+                   proba_mode_zi = proba_mode_zi, #
+                   block_values = NULL, #0.5 * block_values_ref, #
                    row_clusters = NULL,
                    col_clusters = NULL,
-                   row_clusters_proba = NULL,
-                   col_clusters_proba = NULL,
+                   row_clusters_proba = NULL, #row_clusters_proba_ref,#
+                   col_clusters_proba = NULL, #col_clusters_proba_ref, #
                    X0 = NULL, B0 = NULL,
-                   mean_X0 = 0, sd_X0 = 10,
+                   min_X0 = 0, max_X0 = 10,
                    max_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
-
-res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
+# for(i in 1:100){
+i = 1
+  print(i)
+  set.seed(i)
+  res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
+                              "Abundance ~ 1 + V1", NA) # | 0 +  VZI1"
+                              # "Abundance ~ 1 + V1 + VZI1")
+# }
+# res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
+#                             "Abundance ~ 1 + V1 | VZI1",
+#                             "Abundance ~ 1 + V1 + VZI1")
 # res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
 
@@ -49,7 +80,7 @@ res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Ab
 #                    omega_structure = setting$omega_structure,
 #                    zi_type = setting$zi_type,
 #                    zi_covar_cluster = TRUE,
-#                    mean_X = 0, sd_X = 10, SNR = 0.75,
+#                    min_X = 0, max_X = 10, mean_B  = 2, sd_B = 1, XB_max = 70,
 #                    n_mode_zi_proba = setting$n_mode_zi_proba,
 #                    zi_mode_values = setting$zi_mode_values[[1]],
 #                    proba_mode_zi = setting$proba_mode_zi[[1]],
@@ -59,7 +90,7 @@ res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Ab
 #                    row_clusters_proba = setting$row_clusters_proba,
 #                    col_clusters_proba = setting$col_clusters_proba,
 #                    X0 = NULL, B0 = NULL,
-#                    mean_X0 = 0, sd_X0 = 10,
+#                    min_X0 = 0, max_X0 = 10,
 #                    max_X0B0 = 0.2)
 #
 # res <- one_ZIPLN_simulation(1, zi_config = zi_config, simu_params = simu_params, PLN_formula = PLN_formula,

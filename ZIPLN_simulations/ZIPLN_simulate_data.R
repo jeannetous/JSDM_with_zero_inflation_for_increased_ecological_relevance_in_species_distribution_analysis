@@ -11,9 +11,11 @@ library(MASS)
 #' @param zi_type type of zero-inflation
 #' @param zi_covar_cluster boolean, if zi_type = covar, whether there should be
 #' a division of the ZI values into rows and column clusters
-#' @param mean_X minimum value for X, either one single value for X, or a list of length d for each dimension
-#' @param sd_X maximum value for X, either one single value for X, or a list of length d for each dimension
-#' @param SNR signal to noise ratio, ratio between Sigma's variance and that of XB
+#' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
+#' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
+#' @param mean_B mean of the Gaussian distributions B values are drawn from, can be a list with one mean per B dimension
+#' @param sd_B standard deviation of the Gaussian distributions B values are drawn from, can be a list with one sd per B dimension
+#' @param XB_max max value for exp(XB) mean of the Poisson distribution that Y follows
 #' @param v calibration parameter to get Omega from a graph
 #' @param u calibration parameter to get Omega from a graph
 #' @param n_mode_zi_proba if zi_type = sites or species, number of different zi probabilities
@@ -23,9 +25,9 @@ library(MASS)
 #' of X0 %*% B0 expected for each pair (row_cluster, col_cluster)
 #' @param X0 optional, if zi_type = covar, list of ZI covariates
 #' @param B0 optional, regression matrix for the ZI covariates, required if X0 is not null
-#' @param mean_X0 minimum value for X0, either one single value for X0, or a list of length d for each dimension,
+#' @param min_X0 minimum value for X0, either one single value for X0, or a list of length d for each dimension,
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
-#' @param sd_X0 maximum value for X0, either one single value for X0, or a list of length d for each dimension
+#' @param max_X0 maximum value for X0, either one single value for X0, or a list of length d for each dimension
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
 #' @param max_X0B0 maximum value for the mean of each column of X0 %*% B0
 #' applied only if zi_covar_cluster = FALSE (otherwise X0 is discrete)
@@ -33,7 +35,8 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
                                           omega_structure = "erdos_renyi",
                                           zi_type = c("covar", "sites", "species"),
                                           zi_covar_cluster = FALSE,
-                                          mean_X = 0, sd_X = 10, SNR = 0.75,
+                                          min_X = 0, max_X = 10, mean_B  = 2,
+                                          sd_B = 1, XB_max = 70,
                                           v = 0.3, u = 0.1, n_mode_zi_proba = 2,
                                           zi_mode_values = NULL,
                                           proba_mode_zi = NULL,
@@ -43,12 +46,13 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
                                           row_clusters_proba = NULL,
                                           col_clusters_proba = NULL,
                                           X0 = NULL, B0 = NULL,
-                                          mean_X0 = 0, sd_X0 = 10,
+                                          min_X0 = 0, max_X0 = 10,
                                           max_X0B0 = -0.2){
+  # browser()
   Omega <- generate_omega(p, omega_structure, v, u)
   Sigma <- chol2inv(chol(Omega))
-  X <- generate_X(n, d, mean_X, sd_X, add_intercept)
-  B <- generate_B(p, X, Sigma, SNR)
+  X <- generate_X(n, d, min_X, max_X, add_intercept)
+  B <- generate_B(p, X, Sigma, mean_B, sd_B, XB_max)
 
   if(zi_type == "covar"){
     if(is.null(X0)){
@@ -59,7 +63,7 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
         B0 <- zi_params$B0 ; X0 <- zi_params$X0_num
         zi_params <- list(X0 = zi_params$X0, B0 = B0, X0_num = zi_params$X0_num)
       }else{
-        X0 <- generate_X(n, d, mean_X0, sd_X0)
+        X0 <- generate_X(n, d, min_X0, max_X0)
         colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))
         B0 <- generate_B0(X0, max_X0B0)
         zi_params <- list(X0 = X0, B0 = B0)

@@ -166,7 +166,7 @@ generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
       zi_proba <- matrix(rep(zi_proba_list, n), nrow = n, byrow = T)
     }
   }
-  zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(0.95, max(0, x)))
+  zi_proba <- apply(zi_proba, c(1, 2), f <- function(x) min(0.95, max(0.05, x)))
   return(zi_proba)
 }
 
@@ -184,14 +184,13 @@ add_zero_inflation <- function(Y, zi_proba){
 #' @description generates continuous covariates matrix X
 #' @param n number of rows in X
 #' @param d number of column in X
-#' @param mean_X minimum value for X, either one single value for X, or a list of length d for each dimension
-#' @param sd_X maximum value for X, either one single value for X, or a list of length d for each dimension
-generate_X <- function(n, d, mean_X = 0, sd_X = 1, add_intercept = TRUE){
-  if(length(mean_X == 1)) mean_X <- rep(mean_X, d)
-  if(length(sd_X == 1)) sd_X <- rep(sd_X, d)
+#' @param min_X minimum value for X, either one single value for X, or a list of length d for each dimension
+#' @param max_X maximum value for X, either one single value for X, or a list of length d for each dimension
+generate_X <- function(n, d, min_X = 0, max_X = 1, add_intercept = TRUE){
+  if(length(min_X == 1)) min_X <- rep(min_X, d)
+  if(length(max_X == 1)) max_X <- rep(max_X, d)
   X = matrix(rep(1, n * d), nrow=n)
-  # for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
-  for(dim in 1:d){X[,dim] = rnorm(n, mean_X[[dim]], sd_X[[dim]])}
+  for(dim in 1:d){X[,dim] = runif(n, min=min_X[[dim]], max = max_X[[dim]])}
   if(add_intercept){
     X <- cbind(rep(1, n), X)
     colnames(X) <- c("Intercept", unlist(lapply(1:d, f <- function(x) paste0("V", as.character(x)))))
@@ -218,11 +217,10 @@ generate_discrete_X <- function(n, d, n_cat_values, row_clusters = NULL){
 #' @param X covariates matric
 #' @param Sigma variance-covariance matrix used in the model
 #' @param SNR signal to noise ratio, ratio between Sigma's variance and that of XB
-generate_B <- function(p, X, Sigma, SNR = 0.1){
+generate_B <- function(p, X, Sigma, mean_B  = 2, sd_B = 1, XB_max = 70){
   d <- ncol(X)
   B <- matrix(rep(1, d*p), nrow=d)
-  for(dim in 1:d){B[dim,] = runif(p, min=0, max = 1)}
-  correcting_factor <- SNR * var(as.vector(Sigma)) / (var(as.vector(X %*% B)))
-  B <- sqrt(correcting_factor) * B
+  for(dim in 1:d){B[dim,] = rnorm(p, mean = mean_B, sd = sd_B)}
+  B <- (log(XB_max) / max(X %*% B)) * B
   return(B)
 }
