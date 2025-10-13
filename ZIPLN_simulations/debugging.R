@@ -5,31 +5,40 @@ min_X = 0;   max_X = 10; SNR = 0.75
 mean_B  = 2 ; sd_B = 1 ; XB_max = 70
 omega_structure = "erdos_renyi"
 
-zi_type = "sites"
-n_mode_zi_proba = 3
-zi_mode_values =  c(0.2, 0.4, 0.6)
-proba_mode_zi = c(0.3, 0.3, 0.4)
+# zi_type = "sites"
+# n_mode_zi_proba = 3
+# zi_mode_values =  c(0.2, 0.4, 0.6)
+# proba_mode_zi = c(0.3, 0.3, 0.4)
 
 # zi_type = "species"
 # n_mode_zi_proba = 4
 # zi_mode_values = c(0.2, 0.3, 0.6, 0.95)
-# proba_mode_zi = c(0.4, 0.15, 0.15, 0.3)
+# Les deux lignes du dessous ne donnent pas lieu à de très bonnes AUC
+# zi_mode_values = c(0.05, 0.3, 0.6, 0.9)
+# proba_mode_zi = c(0.3, 0.2, 0.15, 0.35)
+# zi_mode_values = c(0.05, 0.5, 0.75, 0.9) # TRUE VALUES
+# proba_mode_zi = c(0.4, 0.2, 0.15, 0.25)  # TRUE VALUES
+# proba_mode_zi = c(0.1, 0.2, 0.3, 0.4)
 
-# zi_type = "covar"
-# block_values_ref <- matrix(c(-0.8, 1.5, 3.2, -0.8, -2,
-#                              -2.2, 7, -1, -2.7, 7,
-#                              -0.7, 7, -1, -0.6, -2,
-#                              -0.7, 7, 7, -3.6, -2,
-#                              7, 7, 7, -1.7, -2,
-#                              7, 7, 0.8, -0.4, -2,
-#                              -2, -4.8, -4.4, -1.9, -2,
-#                              7, -2, 7, -1, -2,
-#                              7, 7, 7, 0.6, -2,
-#                              7, 7, 7, -0.1, -2,
-#                              -0.1, 7, 7, 0, -2,
-#                              7, 7, 7, 0.2, -2 ), nrow = 5)
-# row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
-# col_clusters_proba_ref <- rep(0.0833, 12)
+zi_type = "covar"
+# block_values_ref = matrix(c(-2.9,0 ,1.1, 2.2), nrow = 1)
+# block_values_ref <- rbind(block_values_ref, block_values_ref)
+block_values_ref <- matrix(c(-0.8, 1.5, 3.2, -0.8, -2,
+                             -2.2, 7, -1, -2.7, 7,
+                             -0.7, 7, -1, -0.6, -2,
+                             -0.7, 7, 7, -3.6, -2,
+                             7, 7, 7, -1.7, -2,
+                             7, 7, 0.8, -0.4, -2,
+                             -2, -4.8, -4.4, -1.9, -2,
+                             7, -2, 7, -1, -2,
+                             7, 7, 7, 0.6, -2,
+                             7, 7, 7, -0.1, -2,
+                             -0.1, 7, 7, 0, -2,
+                             7, 7, 7, 0.2, -2 ), nrow = 5)
+row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
+col_clusters_proba_ref <- rep(0.0833, 12)
+# row_clusters_proba_ref <- c(.5, .5)
+# col_clusters_proba_ref <- c(0.4, 0.2, 0.15, 0.25)
 
 # zi_type = "species"
 # n_mode_zi_proba = 4
@@ -45,24 +54,28 @@ simu_params = list(n = n,
                    min_X = 0, max_X = 1, mean_B  = 2, sd_B = 1, XB_max = 70,
                    n_mode_zi_proba = n_mode_zi_proba,#NULL, #
                    zi_mode_values = zi_mode_values,#NULL, #
-                   proba_mode_zi = proba_mode_zi, #
-                   block_values = NULL, #0.5 * block_values_ref, #
+                   proba_mode_zi = proba_mode_zi, #NULL, #
+                   block_values = block_values_ref, #0.5 * NULL, #
                    row_clusters = NULL,
                    col_clusters = NULL,
-                   row_clusters_proba = NULL, #row_clusters_proba_ref,#
-                   col_clusters_proba = NULL, #col_clusters_proba_ref, #
+                   row_clusters_proba = row_clusters_proba_ref,#NULL, #
+                   col_clusters_proba = col_clusters_proba_ref, #NULL, #
                    X0 = NULL, B0 = NULL,
                    min_X0 = 0, max_X0 = 10,
                    max_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
-# for(i in 1:100){
-i = 1
-  print(i)
-  set.seed(i)
-  res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
-                              "Abundance ~ 1 + V1", NA) # | 0 +  VZI1"
+# for(i in 1:2){
+  # print(i)
+  i = 2
+  # set.seed(i)
+  res <- one_ZIPLN_simulation(1, "species", simu_params, "Abundance ~ 1 + V1",
+                              "Abundance ~ 1 + V1 | 0 +  VZI1", NA) #| 0 +  VZI1
                               # "Abundance ~ 1 + V1 + VZI1")
+  # res <- multiple_ZIPLN_simulations(30, "covar", simu_params, "Abundance ~ 1 + V1",
+  #                                   "Abundance ~ 1 + V1", NA) # | 0 +  VZI1"
+  # "Abundance ~ 1 + V1 + VZI1")
+  # print(res)
 # }
 # res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
 #                             "Abundance ~ 1 + V1 | VZI1",
@@ -70,6 +83,36 @@ i = 1
 # res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
 
+
+
+Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
+while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
+  params <- do.call(generate_all_ZIPLN_parameters, simu_params)
+  Y <- simulate_ZIPLN_data(params)
+}
+if(!is.null(params$zi_params)){
+  X <- data.frame(params$X, as.factor(params$zi_params$X0))
+  colnames(X)[[length(colnames(X))]] <- "VZI1"
+}else{X <- params$X}
+simu_data <- prepare_data(Y, X)
+params$Y <- simu_data$Abundance
+
+
+myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
+                    control = PLNnetwork_param(penalize_diagonal = FALSE,
+                                               min_ratio = 0.01,
+                                               n_penalties = 20,
+                                               trace = 0))
+PLN_model <- myPLN
+
+
+zi <- ifelse(simu_params$zi_type == "sites", "row",
+             ifelse(simu_params$zi_type == "species", "col", NA) )
+myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
+                        control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
+                                                     min_ratio = 0.01,
+                                                     n_penalties = 40,
+                                                     trace = 0))
 
 # PLN_formula <- setting$PLN_formula
 # ZIPLN_formula <- setting$ZIPLN_formula
@@ -100,43 +143,23 @@ i = 1
 # set.seed(1)
 
 PLN_formula <- "Abundance ~ 0 + V1"
-ZIPLN_formula <- "Abundance ~ 0 + V1" # | 0 + VZI1"
+ZIPLN_formula <- "Abundance ~ 0 + V1 | 0 + VZI1" # | 0 + VZI1"
 # PLN_formula_ZIvar <- "Abundance ~ 0 " #+ V1 + VZI1
 
-#################### Analyzing ZIPLN simulations output ########################
+################################ Results plots ################################
 
-# res2 <- res %>% filter(!if_any(everything(), ~ grepl("^Error in if", .x)))
-# res2 <- res2 %>% mutate(across(c(n, p, omega_rmse, AUC, rmse_fit, fallout,
-#                                  recall, precision, f1_score), as.numeric))
-# zi_type = "species"
-#
-# # AUC
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$AUC)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$AUC)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$AUC)
-#
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$AUC)
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$AUC)
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$AUC)
-#
-# # F1-score
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$f1_score)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$f1_score)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$f1_score)
-#
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_1"),]$f1_score)
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_2"),]$f1_score)
-# median(res2[res2$method == "PLN" & res2$criterion == "BIC" & res2$zi_config == paste0(zi_type, "_3"),]$f1_score)
-#
-#
-# # Precision
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_1"),]$precision)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_2"),]$precision)
-# median(res2[res2$method == "ZIPLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_3"),]$precision)
-#
-# median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_1"),]$precision)
-# median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_2"),]$precision)
-# median(res2[res2$method == "PLN" & res2$criterion == "StARS" & res2$zi_config == paste0(zi_type, "_3"),]$precision)
+# res$zi_strength <- as.numeric(sub(".*_", "", res$zi_config))
+# auc_zi_type_strength <- ggplot(res, aes(x = zi_strength, y = AUC, fill = method)) +
+#   geom_violin() +
+#   facet_grid(zi_strength ~ zi_type) +
+#   labs(title = "AUC (zi type ~ zi strength)", x = "", y = "AUC") +
+#   theme_minimal() +  # Apply a clean theme
+#   scale_fill_viridis_d() +
+#   theme(
+#     strip.text = element_text(size = 10, face = "bold"),
+#     axis.text.x = element_blank(),
+#     legend.position = "bottom"
+#   )
 
 #################### Network plotting functions ################################
 plot_network = function(Omega,

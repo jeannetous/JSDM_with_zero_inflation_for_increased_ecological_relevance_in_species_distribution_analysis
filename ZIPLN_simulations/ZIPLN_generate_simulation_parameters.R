@@ -125,7 +125,7 @@ generate_X0_B0_cluster <- function(n, p, block_values,
       col_clusters <- sort(rep(1:b, length.out = p))
     }else{col_clusters <- sort(sample(1:b, size = p, replace = TRUE, prob = col_clusters_proba))}
   }
-  B0 <- block_values[, col_clusters]
+  B0 <- block_values[, col_clusters, drop = FALSE]
   B0 <- apply(B0, c(1,2), f <- function(x){rnorm(1, x, 0.05)})
   X0 <- generate_discrete_X(n, 1, a, row_clusters)
   colnames(X0) <- unlist(lapply(1:ncol(X0), f <- function(x) paste0("VZI", as.character(x))))

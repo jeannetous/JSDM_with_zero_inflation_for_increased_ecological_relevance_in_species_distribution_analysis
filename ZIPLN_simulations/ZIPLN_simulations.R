@@ -35,7 +35,8 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
                       control = PLNnetwork_param(penalize_diagonal = FALSE,
                                                  min_ratio = 0.01,
-                                                 n_penalties = 20))
+                                                 n_penalties = 20,
+                                                 trace = 0))
   # PLN_StARS_measures <- get_measures(myPLN, params, model_selection = "StARS",
   #                                    stability = 0.8)
   PLN_BIC_measures <- get_measures(myPLN, params, model_selection = "BIC") #,
@@ -66,10 +67,12 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   zi <- ifelse(simu_params$zi_type == "sites", "row",
                ifelse(simu_params$zi_type == "species", "col", NA) )
   t0 = Sys.time()
+
   myZIPLN <- ZIPLNnetwork(as.formula(ZIPLN_formula), simu_data, zi = zi,
                           control = ZIPLNnetwork_param(penalize_diagonal = FALSE,
                                                        min_ratio = 0.01,
-                                                       n_penalties = 20))
+                                                       n_penalties = 20,
+                                                       trace = 0))
   # ZIPLN_StARS_measures <- get_measures(myZIPLN, params, model_selection = "StARS",
   #                                      stability = 0.8)
   ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC")#,
@@ -180,7 +183,6 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                                   XB_max = 70, min_X0 = 0, max_X0 = 10,
                                   max_X0B0 = -0.2,
                                   mc.cores = max(1, parallel::detectCores() - 2)) {
-  print("AAAA")
   settings <- expand.grid(n = n_list,
                           p = p_list,
                           omega_structure = omega_structure_list,
