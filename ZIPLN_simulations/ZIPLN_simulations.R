@@ -29,7 +29,6 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   }else{X <- params$X}
   simu_data <- prepare_data(Y, X)
   params$Y <- simu_data$Abundance
-
   ########################## Running PLN model #################################
   t0 = Sys.time()
   myPLN <- PLNnetwork(as.formula(PLN_formula), simu_data,
@@ -78,7 +77,6 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   ZIPLN_BIC_measures <- get_measures(myZIPLN, params, model_selection = "BIC")#,
                                      # AUC = ZIPLN_StARS_measures[["AUC"]])
   t_ZIPLN = Sys.time() - t0
-
   # ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN)
   ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
 
@@ -91,7 +89,6 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   measure_rows <- list(c(method = "PLN", PLN_BIC_measures),
                        c(method = "ZIPLN", ZIPLN_BIC_measures)
   )
-  # measure_rows <- list(c(method = "PLN", PLN_BIC_measures))
 
   if(!is.na(PLN_formula_ZIvar)){
     measure_rows <- c(measure_rows,

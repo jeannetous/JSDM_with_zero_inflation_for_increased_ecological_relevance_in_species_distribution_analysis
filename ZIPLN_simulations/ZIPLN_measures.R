@@ -4,63 +4,68 @@ library(Metrics)
 #' an inferred network (precision matrices here) given the true one
 #' @param omega_true true precision matrix
 #' @param omega_estimate estimated precision matrix
-roc_metrics <- function(omega_true, omega_estimate){
+roc_metrics <- function(omega_true, omega_estimate) {
 
-  diag(omega_true) <- 0 ; diag(omega_estimate) <- 0
+  diag(omega_true) <- 0 ; p <- nrow(omega_true)
+  roc <- function(theta) {
+    diag(theta) <- 0
 
-  true.nzero <- which(omega_true != 0)
-  true.zero  <- which(omega_true == 0)
+    nzero <- which(theta != 0)
+    zero  <- which(theta == 0)
 
-  nzero <- which(omega_estimate != 0)
-  zero  <- which(omega_estimate == 0)
+    true.nzero <- which(omega_true != 0)
+    true.zero  <- which(omega_true == 0)
 
-  TP <- 0.5 * sum(nzero %in% true.nzero)
-  TN <- 0.5 * (sum(zero %in%  true.zero) - nrow(omega_true)) # removing diagonal values that do not count
-  FP <- 0.5 * sum(nzero %in% true.zero)
-  FN <- 0.5 * sum(zero %in%  true.nzero)
+    TP <- sum(nzero %in% true.nzero)
+    TN <- sum(zero %in%  true.zero) - p
+    FP <- sum(nzero %in% true.zero)
+    FN <- sum(zero %in%  true.nzero)
+    recall    <- TP/(TP + FN) ## also recall and sensitivity
+    fallout   <- FP/(FP + TN) ## also 1 - specificit
+    precision <- TP/(TP + FP) ## also PPR
+    f1_score  <- 2 * (precision * recall) / (precision + recall)
+    recall[TP + FN == 0] <- NA
+    fallout[TN + FP == 0] <- NA
+    precision[TP + FP == 0] <- NA
 
-  recall    <- TP/(TP + FN)
-  fallout   <- FP/(FP + TN)
-  precision <- TP/(TP + FP)
-  f1_score <- 2 * (precision * recall) / (precision + recall)
-  recall[TP + FN == 0] <- NA
-  fallout[TN + FP == 0] <- NA
-  precision[TP + FP == 0] <- NA
+    res <-  round(c(fallout,recall,precision, f1_score),3)
+    res[is.nan(res)] <- 0
+    names(res) <- c("fallout","recall", "precision", "f1_score")
+    res
+  }
 
-  res <-  round(c(fallout,recall,precision, f1_score), 3)
-  res[is.nan(res)] <- 0
-  names(res) <- c("fallout","recall", "precision", "f1_score")
-
-  return(res)
+  if (is.list(omega_estimate)) {
+    return(as.data.frame(do.call(rbind, lapply(omega_estimate, roc))))
+  } else {
+    return(roc(omega_estimate))
+  }
 }
 
-#' @description computes the AUC given the list of recall and fallout values
-#' @param recall list of recall values
-#' @param fallout list of corresponding fallout values
-auc <- function(recall, fallout){
-  return(sum(diff(fallout) * (recall[-1] + recall[-length(recall)]) / 2))
+#' @description computes AUC from the roc measures
+#' @param roc measures as computed by function roc_metrics, named list that contains
+#' a list of fallout and a list of recall values
+#' @param threshold from which the list of recall / fallout values should be cut
+#' before only adding a (1, 1) point to the ROC curve
+perf_auc <- function(roc, threshold = 1) {
+  cut <- (roc$fallout < threshold) & (roc$recall < threshold)
+  fallout <- c(0, roc$fallout[cut], threshold)
+  recall  <- c(0, roc$recall[cut] , threshold)
+  dx <- diff(fallout)
+  res <- sum(c(recall[-1]*dx, recall[-length(recall)]*dx))/2
+  res <- ifelse(is.character(res), NA, res)
+  res
 }
+
 
 #' @description given a precision matrix and a PLN model (collection of PLN fit
 #' for different penalties), computes the AUC associated to the model
 #' @param omega_true true precision matrix
 #' @param PLN_model fitted PLN model (with multiple penalties)
 get_auc <- function(omega_true, PLN_model){
-  fallout <- c() ; recall <- c()
-  for(pen in PLN_model$penalties){
-    omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
-    res <- roc_metrics(omega_true, omega_estimate)
-    if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
-      fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
-    }
-  }
-  if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
-  # One value of fallout may correspond to different recall values depending on the penalty
-  fallout_unique <- unique(fallout) ; recall_unique <- c()
-  for(x in fallout_unique){
-    recall_unique <- c(recall_unique, max(recall[which(fallout == x)]))
-  }
-  return(auc(recall_unique, fallout_unique))
+  roc <- roc_metrics(omega_true,
+                     lapply(PLN_model$models, function(model) model$model_par$Omega))
+
+  return(perf_auc(roc))
 }
 
 #' @description plots the ROC curve plot (True Positive Rate as a function
@@ -68,17 +73,9 @@ get_auc <- function(omega_true, PLN_model){
 #' @param omega_true true precision matrix
 #' @param PLN_model fitted PLN model (with multiple penalties)
 plot_roc_curve <- function(omega_true, PLN_model){
-  fallout <- c() ; recall <- c()
-  for(pen in PLN_model$penalties){
-    omega_estimate <- PLN_model$getModel(pen)$model_par$Omega
-    res <- roc_metrics(omega_true, omega_estimate)
-    if(!is.na(res[["fallout"]]) && !is.na(res[["recall"]])){
-      fallout <- c(fallout, res[["fallout"]]) ; recall <- c(recall, res[["recall"]])
-    }
-  }
-  if(pen == max(PLN_model$penalties)){recall <- rev(recall) ; fallout <- rev(fallout)}
-  # One value of fallout may correspond to different recall values depending on the penalty
-  plot(recall, fallout)
+  roc <- roc_metrics(omega_true,
+                     lapply(PLN_model$models, function(model) model$model_par$Omega))
+  plot(roc$recall, roc$fallout)
 }
 
 #' @description computes a collection of measures associated to a given PLN model
@@ -101,7 +98,6 @@ get_measures <- function(PLN_model, params, model_selection = NULL,
 
   omega_hat <- model$model_par$Omega
   omega_rmse <- Metrics::rmse(omega_hat, params$Omega)
-  ## get metrics
   if(!is.null(AUC)) AUC = get_auc(params$Omega, PLN_model)
   res <- c(
     criterion = model_selection,

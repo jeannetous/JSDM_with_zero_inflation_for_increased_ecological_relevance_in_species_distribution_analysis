@@ -80,11 +80,11 @@ row_clusters_proba_ref <- c(0.125, 0.125, 0.125, 0.125, 0.5)
 col_clusters_proba_ref <- rep(0.0833, 12)
 
 ############################ Simulations parameters ############################
-n_simu = 3
+n_simu = 20
 n_list = c(300)
 p_list = c(20) #, 100)
-omega_structure_list = c("erdos_renyi")#, "community", "preferential_attachment")
-zi_type_list =  c("sites")#, "covar", "species") #
+omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
+zi_type_list =  c("species")#, "covar", "sites") #
 
 n_mode_zi_proba_sites_list = c(3, 3, 3, 3)
 zi_mode_values_sites_list = list(0.1 * zi_mode_values_sites_ref,
@@ -97,15 +97,29 @@ proba_mode_zi_sites_list = list(proba_mode_zi_values_sites_ref,
                                 proba_mode_zi_values_sites_ref)
 
 
-n_mode_zi_proba_species_list = c(4, 4, 4, 4)
+n_mode_zi_proba_species_list = c(4, 4, 4, 4, 4)
 zi_mode_values_species_list = list(0.1 * zi_mode_values_species_ref,
                                    0.5 * zi_mode_values_species_ref,
                                    zi_mode_values_species_ref,
                                    1.1 * zi_mode_values_species_ref)
-proba_mode_zi_species_list = list(proba_mode_zi_values_species_ref,
-                                  proba_mode_zi_values_species_ref,
-                                  proba_mode_zi_values_species_ref,
-                                  proba_mode_zi_values_species_ref)
+# proba_mode_zi_species_list = list(proba_mode_zi_values_species_ref,
+#                                   proba_mode_zi_values_species_ref,
+#                                   proba_mode_zi_values_species_ref,
+#                                   proba_mode_zi_values_species_ref)
+
+zi_mode_values_species_list = list(c(0.05, 0.1, 0.15, 0.2),
+                                   c(0.3, 0.4, 0.5, 0.6),
+                                   c(0.6, 0.7, 0.8, 0.9),
+                                   c(0.05, 0.1, 0.8, 0.9),
+                                   c(0.05, 0.1, 0.5, 0.6))
+
+proba_mode_zi_species_list = list(c(0.4, 0.2, 0.15, 0.25),
+                                  c(0.4, 0.2, 0.15, 0.25),
+                                  c(0.4, 0.2, 0.15, 0.25),
+                                  c(0.4, 0.2, 0.15, 0.25),
+                                  c(0.4, 0.2, 0.15, 0.25))
+
+
 
 block_values_list = list(block_values_ref_1,
                          block_values_ref_2,
@@ -136,7 +150,7 @@ res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
 ############################ Saving the results and parameters #################
 # write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_sites_species_gaussianX_bigXB_BIConly_1.csv")
 # write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_covar_level3_gaussianX_bigXB_BIConly_1.csv")
-# write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_allZI_bigXB_BIConly_1.csv")
+write.csv(res, "ZIPLN_simulations_res/ZIPLN_simus_investigate_species_zi_1.csv")
 
 
 all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
@@ -152,8 +166,8 @@ all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
                    proba_mode_zi_species_list = proba_mode_zi_species_list)
 # writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_sites_species_gaussianX_BIConly_1_parameters.txt")
 # writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_sites_species_gaussianX_bigXB_BIConly_1_parameters.txt")
-writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_allZI_gaussianX_bigXB_BIConly_1_parameters.txt")
-
+# writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_zi_from_real_zi_proba_allZI_gaussianX_bigXB_BIConly_1_parameters.txt")
+writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simus_investigate_species_zi_1_parameters.txt")
 ############################ Debugging bits ####################################
 
 PLN_formula <- "Abundance ~ 0 + V1"
