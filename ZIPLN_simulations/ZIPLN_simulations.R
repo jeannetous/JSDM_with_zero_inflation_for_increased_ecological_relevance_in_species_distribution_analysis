@@ -139,10 +139,8 @@ multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
 #' @param p_list number of p (number of species) values to go through
 #' @param omega_structure_list list of omega_structure values to go through
 #' @param zi_type_list list of zi_type values to go through
-#' @param n_mode_zi_proba_sites_list, list of n_mode_zi_proba values to go through for the sites
 #' @param zi_mode_values_sites_list, list of zi_mode_values values to go through for the sites
 #' @param proba_mode_zi_sites_list, list of proba_mode_zi values to go through for the sites
-#' @param n_mode_zi_proba_species_list, list of n_mode_zi_proba values to go through for the species
 #' @param zi_mode_values_species_list, list of zi_mode_values values to go through for the species
 #' @param proba_mode_zi_species_list, list of proba_mode_zi values to go through for the species
 #' @param block_values_list list of matrices for block_values for when zi_type = covar
@@ -169,10 +167,8 @@ multiple_ZIPLN_simulations <- function(n_simu, zi_config, simu_params,
 #' @param mc.cores number of cores to run the simulations on in parallel
 grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                                   omega_structure_list,
-                                  zi_type_list, n_mode_zi_proba_sites_list,
-                                  zi_mode_values_sites_list,
+                                  zi_type_list, zi_mode_values_sites_list,
                                   proba_mode_zi_sites_list,
-                                  n_mode_zi_proba_species_list,
                                   zi_mode_values_species_list,
                                   proba_mode_zi_species_list, block_values_list,
                                   row_clusters_proba_list, col_clusters_proba_list,
@@ -187,18 +183,16 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                           KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
   )
 
-  if(!is.null(n_mode_zi_proba_sites_list)){
-    sites_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_sites_list,
-                              zi_mode_values  = zi_mode_values_sites_list,
+  if(!is.null(zi_mode_values_sites_list)){
+    sites_zi_tuples <- tibble(zi_mode_values  = zi_mode_values_sites_list,
                               proba_mode_zi   = proba_mode_zi_sites_list,
-                              zi_config = paste0("sites_", 1:length(n_mode_zi_proba_sites_list)))
+                              zi_config = paste0("sites_", 1:length(zi_mode_values_sites_list)))
   }
 
-  if(!is.null(n_mode_zi_proba_species_list)){
-    species_zi_tuples <- tibble(n_mode_zi_proba = n_mode_zi_proba_species_list,
-                                zi_mode_values  = zi_mode_values_species_list,
+  if(!is.null(zi_mode_values_species_list)){
+    species_zi_tuples <- tibble(zi_mode_values  = zi_mode_values_species_list,
                                 proba_mode_zi   = proba_mode_zi_species_list,
-                                zi_config = paste0("species_", 1:length(n_mode_zi_proba_species_list)))
+                                zi_config = paste0("species_", 1:length(zi_mode_values_species_list)))
   }
 
 
@@ -208,7 +202,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
       row <- .
       if (row$zi_type == "covar") {
         tibble(n = row$n, p = row$p, omega_structure = row$omega_structure,
-               zi_type = row$zi_type, n_mode_zi_proba = NA, zi_mode_values = NA,
+               zi_type = row$zi_type, zi_mode_values = NA,
                proba_mode_zi = NA)
       } else if (row$zi_type == "sites") {
         cbind(row[1:4], sites_zi_tuples)
@@ -250,7 +244,7 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
   settings$n_simu <- n_simu
 
   final_res <- purrr::pmap(settings, f <- function(n, p, omega_structure, zi_type,
-                                                   n_mode_zi_proba, zi_mode_values,
+                                                   zi_mode_values,
                                                    proba_mode_zi, zi_config,
                                                    block_values,
                                                    row_clusters_proba,
@@ -269,7 +263,6 @@ grid_ZIPLN_simulation <- function(n_simu, n_list, p_list, add_intercept,
                        zi_covar_cluster = TRUE,
                        min_X = min_X, max_X = max_X,
                        mean_B  = mean_B, sd_B = sd_B, XB_max = XB_max,
-                       n_mode_zi_proba = n_mode_zi_proba,
                        zi_mode_values = zi_mode_values,
                        proba_mode_zi = proba_mode_zi,
                        block_values = block_values,

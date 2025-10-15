@@ -48,6 +48,7 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
     }
     omega_tilde <- G * v
     omega <- omega_tilde + diag(abs(min(eigen(omega_tilde)$values)) + u, p, p)
+
     # Ensuring that the network is not full for AUC to make sense
     if(min(omega) > 0){
       off_diag_indices <- which(row(matrix(1:p, p, p)) != col(matrix(1:p, p, p)), arr.ind = TRUE)
@@ -73,9 +74,9 @@ generate_omega <- function(p, omega_structure, v = 0.3, u = 0.1){
     to_negate <- prob < 0.4
     omega[upper_pos][to_negate] <- - omega[upper_pos][to_negate]
     omega[lower.tri(omega)] <- t(omega)[lower.tri(omega)]
-    # browser()
+
+    # controlling for omega to be positive definite and its inverse to not have too high values
     cond <- ! is.complex(eigen(omega)$values )
-    # if(cond) cond <- matrixcalc::is.positive.definite(as.matrix(omega))
     if(cond) cond <- all(eigen(omega)$values > 0)
     if(cond) cond <- max(abs(solve(omega))) < 3
   }
@@ -137,20 +138,19 @@ generate_X0_B0_cluster <- function(n, p, block_values,
 #' @param n number of rows in the output matrix
 #' @param p number of columns in the output matrix
 #' @param zi_type zero-inflation type (covariate-dependent, site-wise = row-wise or species-wise = column-wise)
-#' @param n_mode_zi_proba if zi_type = sites or species, number of different zi probabilities
-#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities of length n_mode_zi_proba
+#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities
 #' @param proba_mode_zi list of probabilities of having each ZI contained in zi_mode_values
 #' @param X0 if zi_type = covar, list of ZI covariates
 #' @param B0 if zi_type = covar, regression parameters, so that zi_proba = logit(X0 %*% B0)
 generate_zi_proba <- function(n, p, zi_type = c("covar", "sites", "species"),
-                              n_mode_zi_proba = 1, zi_mode_values = NULL,
-                              proba_mode_zi = NULL,
+                              zi_mode_values = NULL, proba_mode_zi = NULL,
                               X0 = NULL, B0 = NULL){
   zi_type <- match.arg(zi_type)
   if(zi_type == "covar"){
     X0B0 <- X0 %*% B0
     zi_proba <- exp(X0B0) / (1 + exp(X0B0))
   }else{
+    n_mode_zi_proba <- length(zi_mode_values)
     if(is.null(proba_mode_zi)){
       if(zi_type == "sites"){groups <- sort(rep(1:n_mode_zi_proba, length.out = n))
       }else{groups <- sort(rep(1:n_mode_zi_proba, length.out = p))}

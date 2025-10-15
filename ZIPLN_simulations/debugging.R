@@ -55,7 +55,6 @@ simu_params = list(n = n,
                    zi_type = zi_type,
                    zi_covar_cluster = TRUE,
                    min_X = 0, max_X = 1, mean_B  = 2, sd_B = 1, XB_max = 70,
-                   n_mode_zi_proba = n_mode_zi_proba,#NULL, #
                    zi_mode_values = zi_mode_values,#NULL, #
                    proba_mode_zi = proba_mode_zi, #NULL, #
                    block_values = NULL, #block_values_ref, #0.5 *

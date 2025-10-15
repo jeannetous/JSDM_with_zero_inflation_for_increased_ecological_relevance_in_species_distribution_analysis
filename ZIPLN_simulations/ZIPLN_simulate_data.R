@@ -18,8 +18,7 @@ library(MASS)
 #' @param XB_max max value for exp(XB) mean of the Poisson distribution that Y follows
 #' @param v calibration parameter to get Omega from a graph
 #' @param u calibration parameter to get Omega from a graph
-#' @param n_mode_zi_proba if zi_type = sites or species, number of different zi probabilities
-#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities of length n_mode_zi_proba
+#' @param zi_mode_values if zi_type = sites or species, list of zi probabilities
 #' @param proba_mode_zi list of probabilities of having each ZI contained in zi_mode_values
 #' @param block_values if zi_type = "covar" and  zi_covar_cluster = TRUE, values
 #' of X0 %*% B0 expected for each pair (row_cluster, col_cluster)
@@ -37,7 +36,7 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
                                           zi_covar_cluster = FALSE,
                                           min_X = 0, max_X = 10, mean_B  = 2,
                                           sd_B = 1, XB_max = 70,
-                                          v = 0.3, u = 0.1, n_mode_zi_proba = 2,
+                                          v = 0.3, u = 0.1,
                                           zi_mode_values = NULL,
                                           proba_mode_zi = NULL,
                                           block_values = NULL,
@@ -69,29 +68,19 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
       }
     }else{zi_params <- list(X0 = X0, B0 = B0)}
     }else{zi_params <- NULL}
-  zi_proba <- generate_zi_proba(n, p, zi_type,
-                                n_mode_zi_proba, zi_mode_values, proba_mode_zi,
+  zi_proba <- generate_zi_proba(n, p, zi_type, zi_mode_values, proba_mode_zi,
                                 X0, B0)
   return(list(Omega = Omega, Sigma = Sigma, X = X, B = B,
               zi_params = zi_params, zi_proba = zi_proba))
 }
 
-#' @description simulates data under the ZIPLN model for fixed parameters
-#' @param Sigma variance-covariance matrix of the model
-#' @param X covariates matrix
-#' @param B regression coefficient matrix
-#' @param zi_proba matrix of zero-inflation probabilities
-simulate_ZIPLN_data_fixed_parameters <- function(Sigma, X, B, zi_proba){
-  mu <- X %*% B
-  Y  <-rMLN(n, mu, Sigma, N = rep(3000, n), zi_proba = zi_proba)
-  return(Y)
-}
-
 #' @description simulates data under the ZIPLN model for a list of fixed parameters
 #' @param params named list of parameters for the ZIPLN model
 simulate_ZIPLN_data <- function(params){
-  Y <- simulate_ZIPLN_data_fixed_parameters(params$Sigma, params$X,
-                                            params$B, params$zi_proba)
+  n  <- nrow(params$X)
+  mu <- params$X %*% params$B
+  Y  <-rMLN(n, mu, Sigma = params$Sigma, N = rep(3000, n),
+            zi_proba = params$zi_proba)
   return(Y)
 }
 
