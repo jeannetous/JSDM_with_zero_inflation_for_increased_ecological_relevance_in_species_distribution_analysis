@@ -19,7 +19,7 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                                  PLN_formula, ZIPLN_formula,
                                  PLN_formula_ZIvar = NA){
   Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
-  while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){
+  while( (TRUE %in% (colSums(Y) == 0)) ){
     params <- do.call(generate_all_ZIPLN_parameters, simu_params)
     Y <- simulate_ZIPLN_data(params)
   }

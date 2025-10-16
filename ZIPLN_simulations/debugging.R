@@ -16,9 +16,8 @@ n_mode_zi_proba = 4
 # Les deux lignes du dessous ne donnent pas lieu à de très bonnes AUC
 # zi_mode_values = c(0.05, 0.3, 0.6, 0.9)
 # proba_mode_zi = c(0.3, 0.2, 0.15, 0.35)
-# zi_mode_values = c(0.05, 0.5, 0.75, 0.9) # TRUE VALUES
-zi_mode_values = c(0.1, 0.75, 0.8, 0.9)
-proba_mode_zi = c(0.4, 0.2, 0.15, 0.25)  # TRUE VALUES
+zi_mode_values = c(0.05, 0.3, 0.6, 0.9)
+proba_mode_zi = c(0.4, 0.15, 0.15, 0.3)
 # zi_mode_values = c(0.05, 0.1, 0.15, 0.2)
 # zi_mode_values = c(0.6, 0.65, 0.7, 0.75)
 # proba_mode_zi = c(0.1, 0.2, 0.3, 0.4)
@@ -67,9 +66,8 @@ simu_params = list(n = n,
                    max_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
-# for(i in 1:2){
-  # print(i)
-  i = 3
+for(i in 1:10){
+  print(i)
   set.seed(i)
   res <- one_ZIPLN_simulation(1, "species", simu_params, "Abundance ~ 1 + V1",
                               "Abundance ~ 1 + V1", NA) #| 0 +  VZI1
@@ -78,7 +76,7 @@ simu_params = list(n = n,
   #                                   "Abundance ~ 1 + V1", NA) # | 0 +  VZI1"
   # "Abundance ~ 1 + V1 + VZI1")
   print(res)
-# }
+}
 # res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
 #                             "Abundance ~ 1 + V1 | VZI1",
 #                             "Abundance ~ 1 + V1 + VZI1")

@@ -79,8 +79,8 @@ generate_all_ZIPLN_parameters <- function(n, p, d, add_intercept = TRUE,
 simulate_ZIPLN_data <- function(params){
   n  <- nrow(params$X)
   mu <- params$X %*% params$B
-  Y  <-rMLN(n, mu, Sigma = params$Sigma, N = rep(3000, n),
-            zi_proba = params$zi_proba)
+  Y  <- rMLN(n, mu, Sigma = params$Sigma, N = rep(3000, n),
+             zi_proba = params$zi_proba)
   return(Y)
 }
 
@@ -127,8 +127,12 @@ rMLN <- function(n, mu = matrix(0, n, p), Sigma, N = rep(3000, n),
   prop.list <- lapply(seq_len(nrow(proportions)), function(i) proportions[i,])
   counts <- mapply(rmultinom, size = N, prob = prop.list, n = 1)
   W <- t(matrix(rbinom(n * p, size = 1, prob = zi_proba), n, p))
-  counts <- counts * W
-  which_zero  <- which(colSums(counts) == 0)
-  for (j in which_zero) counts[sample.int(n, 1), j] <- 1
+  counts <- counts * (W == 0)
   counts <- t(counts)
+
+  which_zero  <- which(colSums(counts) == 0)
+  if (length(which_zero) > 0) {
+    counts[sample.int(n, 1), which_zero] <- 1
+  }
+  counts
 }
