@@ -3,6 +3,7 @@ library(tidyr)
 library(dplyr)
 source("ZIPLN_measures.R")
 source("ZIPLN_simulate_data.R")
+source("reference_methods.R")
 
 #' @description simulates data under the ZIPLN model, runs different models and
 #' outputs the performance measures for each one
@@ -79,7 +80,25 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
   t_ZIPLN = Sys.time() - t0
   # ZIPLN_StARS_measures[["time"]] = as.numeric(t_ZIPLN)
   ZIPLN_BIC_measures[["time"]] = as.numeric(t_ZIPLN)
-
+  
+  ############################# Running reference methods ######################
+  reference_names   <- c("spiecEasi_network", "graphical_lasso_network",
+                         "neighborhood_selection_network", "sparCC_network")
+  reference_methods <- c(spiecEasi_network, graphical_lasso_network,
+                         neighborhood_selection_network, sparCC_network)
+  reference_results <- lapply(reference_methods, function(f) f(params$Y, params$X))
+  reference_roc     <- lapply(reference_results,
+                              function(res) roc_metrics(params$Omega, res))
+  reference_auc     <- lapply(reference_roc, perf_auc)
+  reference_rows    <- lapply(1:length(reference_names),
+                             function(i) c(method = reference_names[[i]],
+                                           AUC = reference_auc[[i]]))
+  reference_df      <- as.data.frame(cbind(simu = simu, n = simu_params$n, p = simu_params$p,
+                                           omega_structure = simu_params$omega_structure,
+                                           zi_type = simu_params$zi_type,
+                                           zi_config = zi_config,
+                                           do.call(rbind, reference_rows)))
+  
   ################# Merging all the measures in one data frame #################
   # measure_rows <- list(c(method = "PLN", PLN_StARS_measures),
   #                      c(method = "PLN", PLN_BIC_measures),
@@ -100,6 +119,8 @@ one_ZIPLN_simulation <- function(simu = 1, zi_config, simu_params,
                              zi_type = simu_params$zi_type,
                              zi_config = zi_config,
                              do.call(rbind, measure_rows)))
+  reference_df[, setdiff(names(res), names(reference_df))] <- NA
+  res <- rbind(res, reference_df)
   return(res)
 }
 

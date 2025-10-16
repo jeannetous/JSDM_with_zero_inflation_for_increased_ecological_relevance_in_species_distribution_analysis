@@ -66,8 +66,9 @@ simu_params = list(n = n,
                    max_X0B0 = 0.2)
 
 # res <- multiple_ZIPLN_simulations(3, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
-for(i in 1:10){
-  print(i)
+# for(i in 1:10){
+  # print(i) 
+  i = 1
   set.seed(i)
   res <- one_ZIPLN_simulation(1, "species", simu_params, "Abundance ~ 1 + V1",
                               "Abundance ~ 1 + V1", NA) #| 0 +  VZI1
@@ -75,15 +76,39 @@ for(i in 1:10){
   # res <- multiple_ZIPLN_simulations(30, "covar", simu_params, "Abundance ~ 1 + V1",
   #                                   "Abundance ~ 1 + V1", NA) # | 0 +  VZI1"
   # "Abundance ~ 1 + V1 + VZI1")
-  print(res)
-}
+  # print(res)
+# }
 # res <- one_ZIPLN_simulation(1, "covar_2", simu_params, "Abundance ~ 1 + V1",
 #                             "Abundance ~ 1 + V1 | VZI1",
 #                             "Abundance ~ 1 + V1 + VZI1")
 # res <- one_ZIPLN_simulation(1, "sites_1", simu_params, "Abundance ~ 0 + V1", "Abundance ~ 0 + V1")
 
 
-
+  ################################################################################ 
+  
+  
+  simu_params = list(n = 300,
+                     p = 20,
+                     d = 1,
+                     omega_structure = "erdos_renyi",
+                     zi_type = "species",
+                     zi_covar_cluster = TRUE,
+                     min_X = 0, max_X = 1, mean_B  = 2, sd_B = 1, XB_max = 70,
+                     zi_mode_values = 0.1 * zi_mode_values_species_ref,#NULL, #
+                     proba_mode_zi = proba_mode_zi_values_species_ref, #NULL, #
+                     block_values = NULL, #block_values_ref, #0.5 *
+                     row_clusters = NULL,
+                     col_clusters = NULL,
+                     row_clusters_proba = NULL, #row_clusters_proba_ref,#
+                     col_clusters_proba = NULL, #col_clusters_proba_ref,#
+                     X0 = NULL, B0 = NULL,
+                     min_X0 = 0, max_X0 = 10,
+                     max_X0B0 = 0.2)
+  
+  
+  
+  res <- one_ZIPLN_simulation(1, "species", simu_params, "Abundance ~ 1 + V1",
+                              "Abundance ~ 1 + V1", NA)
 
 # Y <- matrix(rep(0, simu_params$n, simu_params$p), nrow = simu_params$n)
 # while( (TRUE %in% (rowSums(Y) == 0)) | (TRUE %in% (colSums(Y) == 0)) ){

@@ -36,8 +36,8 @@ col_clusters_proba_ref <- rep(0.0833, 12)
 
 ############################ Simulations parameters ############################
 n_simu = 30
-n_list = c(300)
-p_list = c(20, 50)
+n_list = c(25, 50, 100, 300)
+p_list = c(25, 50)
 omega_structure_list = c("erdos_renyi", "community", "preferential_attachment")
 zi_type_list =  c("species", "covar", "sites") #
 
@@ -67,6 +67,7 @@ block_values_list = list(block_values_ref_1,
 row_clusters_proba_list = list(row_clusters_proba_ref, row_clusters_proba_ref, row_clusters_proba_ref, row_clusters_proba_ref)
 col_clusters_proba_list = list(col_clusters_proba_ref, col_clusters_proba_ref, col_clusters_proba_ref, col_clusters_proba_ref)
 
+
 ############################ Running simulations ###############################
 res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
                              add_intercept = TRUE,
@@ -82,7 +83,7 @@ res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
                              mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
-write.csv(res, "ZIPLN_simulations_res/ZIPLN_simu_BIC_1.csv")
+write.csv(res, "ZIPLN_simulations_res/ZIPLN_simu_ref_BIC_2.csv")
 
 
 
@@ -96,5 +97,5 @@ all_params <- list(n_simu = n_simu, n_list = n_list, p_list = p_list,
                    zi_mode_values_species_list = zi_mode_values_species_list,
                    proba_mode_zi_species_list = proba_mode_zi_species_list)
 
-writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simu_BIC_1_parameters.txt")
+writeLines(capture.output(str(all_params)), "ZIPLN_simulations_res/ZIPLN_simu_ref_BIC_2_parameters.txt")
 
