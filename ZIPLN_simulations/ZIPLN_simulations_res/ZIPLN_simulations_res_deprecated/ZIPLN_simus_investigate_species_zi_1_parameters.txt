@@ -1,0 +1,37 @@
+List of 16
+ $ n_simu                      : num 20
+ $ n_list                      : num 300
+ $ p_list                      : num 20
+ $ min_X                       : num 0
+ $ max_X                       : num 1
+ $ mean_B                      : num 2
+ $ sd_B                        : num 1
+ $ XB_max                      : num 70
+ $ omega_structure_list        : chr [1:3] "erdos_renyi" "community" "preferential_attachment"
+ $ zi_type_list                : chr "species"
+ $ n_mode_zi_proba_sites_list  : num [1:4] 3 3 3 3
+ $ zi_mode_values_sites_list   :List of 4
+  ..$ : num [1:3] 0.02 0.04 0.06
+  ..$ : num [1:3] 0.1 0.2 0.3
+  ..$ : num [1:3] 0.2 0.4 0.6
+  ..$ : num [1:3] 0.22 0.44 0.66
+ $ proba_mode_zi_sites_list    :List of 4
+  ..$ : num [1:3] 0.3 0.3 0.4
+  ..$ : num [1:3] 0.3 0.3 0.4
+  ..$ : num [1:3] 0.3 0.3 0.4
+  ..$ : num [1:3] 0.3 0.3 0.4
+ $ n_mode_zi_proba_species_list: num [1:6] 4 4 4 4 4 4
+ $ zi_mode_values_species_list :List of 6
+  ..$ : num [1:4] 0.05 0.1 0.15 0.2
+  ..$ : num [1:4] 0.3 0.4 0.5 0.6
+  ..$ : num [1:4] 0.6 0.7 0.8 0.9
+  ..$ : num [1:4] 0.05 0.1 0.8 0.9
+  ..$ : num [1:4] 0.05 0.1 0.8 0.9
+  ..$ : num [1:4] 0.05 0.1 0.5 0.6
+ $ proba_mode_zi_species_list  :List of 6
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25
+  ..$ : num [1:4] 0.4 0.2 0.15 0.25

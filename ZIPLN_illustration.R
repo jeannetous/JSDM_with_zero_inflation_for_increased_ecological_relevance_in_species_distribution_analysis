@@ -1,5 +1,5 @@
 library(MASS)
-# library(PLNmodels)
+library(PLNmodels)
 library(pheatmap)
 library(paletteer)
 
@@ -32,6 +32,8 @@ variances <- c(0.5, 0.5, 0.5)
 D <- diag(sqrt(variances))
 Sigma <- D %*% R %*% D
 Omega <- solve(Sigma)
+Omega[1, 2]<- 0 ; Omega[2, 1]<- 0 ; Omega <- round(Omega, 2)
+Sigma <- solve(Omega)
 
 Y = matrix(rep(1, n*p), nrow=n)
 Z = mvrnorm(n, mu=matrix(rep(0, p), p, 1), Sigma=Sigma)
@@ -70,7 +72,7 @@ pheatmap(
 
 
 # Running regular PLN model
-myPLN <- PLNnetwork(Abundance ~ 0 + V1, simu_data, penalties = c(1e-9))
+myPLN <- PLNnetwork(Abundance ~ 0 + V1, simu_data)
 myPLN$getModel(0)$plot_network()
 
 # Adding zero-inflation

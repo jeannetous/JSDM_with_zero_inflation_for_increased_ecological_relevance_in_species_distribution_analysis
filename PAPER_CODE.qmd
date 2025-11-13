@@ -263,7 +263,6 @@ pheatmap(pi_proba_final,
 
 ```
 
-
 # Cross-validation measures for PLN-network and ZIPLN-network
 
 ```{r cross-val-folds}
