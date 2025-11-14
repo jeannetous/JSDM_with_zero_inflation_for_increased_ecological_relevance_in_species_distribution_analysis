@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content=" ">
+<meta name="author" content="AAA">
 
 <title>A JSDM with zero-inflation to increase the ecological relevance of analyses of species distribution data.</title>
 <style>
@@ -90,7 +90,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>   </p>
+             <p>AAA </p>
           </div>
   </div>
     
@@ -120,10 +120,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ✔ dplyr     1.1.4     ✔ readr     2.1.5
-✔ forcats   1.0.0     ✔ stringr   1.5.1
-✔ ggplot2   3.5.2     ✔ tibble    3.2.1
+✔ forcats   1.0.1     ✔ stringr   1.5.2
+✔ ggplot2   4.0.0     ✔ tibble    3.3.0
 ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-✔ purrr     1.0.4     </code></pre>
+✔ purrr     1.1.0     </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
@@ -210,7 +210,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="PAPER_CODE_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="PAPER_CODE_files/figure-html/data-visualization-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -278,20 +278,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  Post-treatments
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_pc1_pc2_StARS &lt;- model_PLN_pc1_pc1$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_StARS <span class="ot">&lt;-</span> model_PLN_pc1_pc2<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.2444352</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_PLN_pc1_pc2$getModel(0.2444352): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.2444352 , returned: 0.244435203464394</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_PLN_pc1_pc2_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_StARS <span class="ot">&lt;-</span> model_PLN_pc1_pc2<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -9797.115</code></pre>
+<pre><code>
+Stability Selection for PLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_pc1_pc2_StARS &lt;- model_PLN_pc1_pc2$getModel(0.2444352)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -299,11 +294,11 @@ Returning model with closest value. Requested: 0.2444352 , returned: 0.244435203
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,<span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,<span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -313,9 +308,9 @@ Returning model with closest value. Requested: 0.2444352 , returned: 0.244435203
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance  <span class="ot">&lt;-</span> <span class="fu">PLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance,  <span class="at">data =</span> NR_DATA,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">PLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance  <span class="ot">&lt;-</span> <span class="fu">PLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance,  <span class="at">data =</span> NR_DATA,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">PLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Initialization...
@@ -354,20 +349,15 @@ Returning model with closest value. Requested: 0.2444352 , returned: 0.244435203
  Post-treatments
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_pc1_pc2_disturbance_StARS &lt;- model_PLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance_StARS <span class="ot">&lt;-</span> model_PLN_pc1_pc2_disturbance<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.2361045</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_PLN_pc1_pc2_disturbance$getModel(0.2361045): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.2361045 , returned: 0.236104471385861</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance_StARS <span class="ot">&lt;-</span> model_PLN_pc1_pc2_disturbance<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -9775.779</code></pre>
+<pre><code>
+Stability Selection for PLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_pc1_pc2_disturbance_StARS &lt;- model_PLN_pc1_pc2_disturbance$getModel(0.2361045)</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -375,11 +365,11 @@ Returning model with closest value. Requested: 0.2361045 , returned: 0.236104471
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -389,9 +379,9 @@ Returning model with closest value. Requested: 0.2361045 , returned: 0.236104471
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>model_PLN  <span class="ot">&lt;-</span> <span class="fu">PLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> stream <span class="sc">+</span> disturbance,  <span class="at">data =</span> NR_DATA,</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">PLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>model_PLN  <span class="ot">&lt;-</span> <span class="fu">PLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> stream <span class="sc">+</span> disturbance,  <span class="at">data =</span> NR_DATA,</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">PLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Initialization...
@@ -430,20 +420,15 @@ Returning model with closest value. Requested: 0.2361045 , returned: 0.236104471
  Post-treatments
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_StARS &lt;- model_PLN$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>model_PLN_StARS <span class="ot">&lt;-</span> model_PLN<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.06570186</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_PLN$getModel(0.06570186): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.06570186 , returned: 0.0655724111268685</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_PLN_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>model_PLN_StARS <span class="ot">&lt;-</span> model_PLN<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -8989.53</code></pre>
+<pre><code>
+Stability Selection for PLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>model_PLN_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_PLN_StARS &lt;- model_PLN$getModel(0.06570186)</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>model_PLN_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -451,13 +436,13 @@ Returning model with closest value. Requested: 0.06570186 , returned: 0.06557241
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"stream_Caura"</span>, <span class="st">"stream_Lopinot"</span>,</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"stream_LowerAripo"</span>, <span class="st">"stream_Maracas"</span>,   <span class="st">"stream_Quare"</span>,</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"stream_Turure"</span>, <span class="st">"stream_UpperAripo"</span>, <span class="st">"disturbance"</span>)</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_PLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_PLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"stream_Caura"</span>, <span class="st">"stream_Lopinot"</span>,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"stream_LowerAripo"</span>, <span class="st">"stream_Maracas"</span>,   <span class="st">"stream_Quare"</span>,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"stream_Turure"</span>, <span class="st">"stream_UpperAripo"</span>, <span class="st">"disturbance"</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -470,9 +455,9 @@ Returning model with closest value. Requested: 0.06570186 , returned: 0.06557241
 <section id="running-zipln-network" class="level1">
 <h1>Running ZIPLN-network</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2   <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">|</span> <span class="dv">1</span>,  <span class="at">data =</span> NR_DATA,</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2   <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">|</span> <span class="dv">1</span>,  <span class="at">data =</span> NR_DATA,</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Initialization...
@@ -509,20 +494,15 @@ Returning model with closest value. Requested: 0.06570186 , returned: 0.06557241
     sparsifying penalty = 0.05731241 
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_pc1_pc2_StARS &lt;- model_ZIPLN_pc1_pc2$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_StARS <span class="ot">&lt;-</span> model_ZIPLN_pc1_pc2<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.05578001</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_ZIPLN_pc1_pc2$getModel(0.05578001): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.05578001 , returned: 0.057312408020319</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_StARS <span class="ot">&lt;-</span> model_ZIPLN_pc1_pc2<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -10043.55</code></pre>
+<pre><code>
+Stability Selection for ZIPLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_pc1_pc2_StARS &lt;- model_ZIPLN_pc1_pc2$getModel(0.05578001)</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -530,11 +510,11 @@ Returning model with closest value. Requested: 0.05578001 , returned: 0.05731240
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -542,9 +522,9 @@ Returning model with closest value. Requested: 0.05578001 , returned: 0.05731240
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -554,9 +534,9 @@ Returning model with closest value. Requested: 0.05578001 , returned: 0.05731240
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance   <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance <span class="sc">|</span> <span class="dv">1</span>,  <span class="at">data =</span> NR_DATA,</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>                                                  <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance   <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance <span class="sc">|</span> <span class="dv">1</span>,  <span class="at">data =</span> NR_DATA,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                                                  <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Initialization...
@@ -593,20 +573,16 @@ Returning model with closest value. Requested: 0.05578001 , returned: 0.05731240
     sparsifying penalty = 0.04566863 
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_pc1_pc2_disturbance_StARS &lt;- model_ZIPLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance_StARS <span class="ot">&lt;-</span> model_ZIPLN_pc1_pc2_disturbance<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.04622685</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_ZIPLN_pc1_pc2_disturbance$getModel(0.04622685): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.04622685 , returned: 0.0456686264156016</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance_StARS <span class="ot">&lt;-</span> model_ZIPLN_pc1_pc2_disturbance<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -10072.24</code></pre>
+<pre><code>
+Stability Selection for ZIPLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_pc1_pc2_disturbance_StARS &lt;- model_ZIPLN_pc1_pc2_disturbance$getModel(0.04622685)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -614,11 +590,11 @@ Returning model with closest value. Requested: 0.04622685 , returned: 0.04566862
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -626,9 +602,9 @@ Returning model with closest value. Requested: 0.04622685 , returned: 0.04566862
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -638,9 +614,9 @@ Returning model with closest value. Requested: 0.04622685 , returned: 0.04566862
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN  <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance <span class="sc">|</span> stream,  <span class="at">data =</span> NR_DATA,</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN  <span class="ot">&lt;-</span> <span class="fu">ZIPLNnetwork</span>(Abundance <span class="sc">~</span> PC1 <span class="sc">+</span> PC2 <span class="sc">+</span> disturbance <span class="sc">|</span> stream,  <span class="at">data =</span> NR_DATA,</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">control =</span> <span class="fu">ZIPLNnetwork_param</span>(<span class="at">min_ratio =</span> <span class="fl">0.05</span>,</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>                                                      <span class="at">penalize_diagonal =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Initialization...
@@ -677,20 +653,15 @@ Returning model with closest value. Requested: 0.04622685 , returned: 0.04566862
     sparsifying penalty = 0.02687438 
  DONE!</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_StARS &lt;- model_ZIPLN$getBestModel("StARS", stability = 0.8)</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_StARS <span class="ot">&lt;-</span> model_ZIPLN<span class="sc">$</span><span class="fu">getModel</span>(<span class="fl">0.03317969</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in model_ZIPLN$getModel(0.03317969): No such a model in the collection. Acceptable parameter values can be found via
-$ranks (for PCA)
-$clusters (for mixture models)
-$penalties (for network)
-Returning model with closest value. Requested: 0.03317969 , returned: 0.0330418709588974</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(model_ZIPLN_StARS<span class="sc">$</span>BIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_StARS <span class="ot">&lt;-</span> model_ZIPLN<span class="sc">$</span><span class="fu">getBestModel</span>(<span class="st">"StARS"</span>, <span class="at">stability =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] -9049.279</code></pre>
+<pre><code>
+Stability Selection for ZIPLNnetwork: 
+subsampling: ++++++++++++++++++++</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model_ZIPLN_StARS &lt;- model_ZIPLN$getModel(0.03317969)</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>model_ZIPLN_StARS<span class="sc">$</span><span class="fu">plot_network</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -698,11 +669,11 @@ Returning model with closest value. Requested: 0.03317969 , returned: 0.03304187
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>B_log_scale <span class="ot">&lt;-</span> <span class="fu">sign</span>(model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">abs</span>(model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>B))</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(B_log_scale) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Intercept"</span>, <span class="st">"PC1"</span>, <span class="st">"PC2"</span>, <span class="st">"disturbance"</span>)</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(B_log_scale,</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::viridis"</span>, <span class="dv">30</span>),</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -710,9 +681,9 @@ Returning model with closest value. Requested: 0.03317969 , returned: 0.03304187
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(model_ZIPLN_pc1_pc2_disturbance_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi,</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>),</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>, <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -722,41 +693,41 @@ Returning model with closest value. Requested: 0.03317969 , returned: 0.03304187
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>pi_proba <span class="ot">&lt;-</span> model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi </span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>pi_proba_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(pi_proba)</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>STREAM <span class="ot">&lt;-</span> NR_DATA<span class="sc">$</span>stream</span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Assume M is a matrix and V is a vector of same length as nrow(M)</span></span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to data frame</span></span>
-<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>pi_proba_df<span class="sc">$</span>STREAM <span class="ot">&lt;-</span> STREAM</span>
-<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep one row per unique value of V</span></span>
-<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>pi_proba_unique <span class="ot">&lt;-</span> pi_proba_df <span class="sc">%&gt;%</span></span>
-<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(STREAM) <span class="sc">%&gt;%</span></span>
-<span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract matrix part</span></span>
-<span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a>pi_proba_final <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">select</span>(pi_proba_unique, <span class="sc">-</span>STREAM))</span>
-<span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-20"><a href="#cb65-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Set row names as the values of V</span></span>
-<span id="cb65-21"><a href="#cb65-21" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(pi_proba_final) <span class="ot">&lt;-</span> pi_proba_unique<span class="sc">$</span>V</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>pi_proba <span class="ot">&lt;-</span> model_ZIPLN_StARS<span class="sc">$</span>model_par<span class="sc">$</span>Pi </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>pi_proba_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(pi_proba)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>STREAM <span class="ot">&lt;-</span> NR_DATA<span class="sc">$</span>stream</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Assume M is a matrix and V is a vector of same length as nrow(M)</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to data frame</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>pi_proba_df<span class="sc">$</span>STREAM <span class="ot">&lt;-</span> STREAM</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep one row per unique value of V</span></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>pi_proba_unique <span class="ot">&lt;-</span> pi_proba_df <span class="sc">%&gt;%</span></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(STREAM) <span class="sc">%&gt;%</span></span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract matrix part</span></span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>pi_proba_final <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">select</span>(pi_proba_unique, <span class="sc">-</span>STREAM))</span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Set row names as the values of V</span></span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(pi_proba_final) <span class="ot">&lt;-</span> pi_proba_unique<span class="sc">$</span>V</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Unknown or uninitialised column: `V`.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the heatmap</span></span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(pi_proba_final,</span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="fu">rev</span>(paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>)),</span>
-<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_rownames =</span> <span class="cn">TRUE</span>)  <span class="co"># show V as row names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the heatmap</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(pi_proba_final,</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> <span class="fu">rev</span>(paletteer<span class="sc">::</span><span class="fu">paletteer_c</span>(<span class="st">"viridis::cividis"</span>, <span class="dv">30</span>)),</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_rows =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_cols =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_rownames =</span> <span class="cn">TRUE</span>)  <span class="co"># show V as row names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="PAPER_CODE_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="PAPER_CODE_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

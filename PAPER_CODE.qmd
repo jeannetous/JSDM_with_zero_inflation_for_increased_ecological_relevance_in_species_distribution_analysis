@@ -1,6 +1,6 @@
 ---
 title: "A JSDM with zero-inflation to increase the ecological relevance of analyses of species distribution data."
-author: 
+author: "AAA"
 format: html
 editor: visual
 ---
@@ -73,7 +73,7 @@ quali_ind <- seq(ncol(NR_COVARIATES) - 3, ncol(NR_COVARIATES))
 
 ## Data visualization
 
-```{r}
+```{r, data-visualization}
 log_abundance <- log(1 + NR_COUNTS)
 log_abundance_sorted <- log_abundance[order(NR_COVARIATES$stream), ]
 
@@ -115,9 +115,8 @@ model_PLN_pc1_pc2  <- PLNnetwork(Abundance ~ PC1 + PC2,  data = NR_DATA,
                          control = PLNnetwork_param(min_ratio = 0.05,
                                                     penalize_diagonal = FALSE))
 
-# model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc1$getBestModel("StARS", stability = 0.8)
-model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc2$getModel(0.2444352)
-print(model_PLN_pc1_pc2_StARS$BIC)
+model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc2$getBestModel("StARS", stability = 0.8)
+# model_PLN_pc1_pc2_StARS <- model_PLN_pc1_pc2$getModel(0.2444352)
 
 model_PLN_pc1_pc2_StARS$plot_network()
 
@@ -132,9 +131,8 @@ pheatmap(B_log_scale,color = paletteer::paletteer_c("viridis::viridis", 30),
 model_PLN_pc1_pc2_disturbance  <- PLNnetwork(Abundance ~ PC1 + PC2 + disturbance,  data = NR_DATA,
                          control = PLNnetwork_param(min_ratio = 0.05,
                                                     penalize_diagonal = FALSE))
-# model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
-model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getModel(0.2361045)
-print(model_PLN_pc1_pc2_disturbance_StARS$BIC)
+model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
+# model_PLN_pc1_pc2_disturbance_StARS <- model_PLN_pc1_pc2_disturbance$getModel(0.2361045)
 
 model_PLN_pc1_pc2_disturbance_StARS$plot_network()
 
@@ -149,9 +147,8 @@ pheatmap(B_log_scale,
 model_PLN  <- PLNnetwork(Abundance ~ PC1 + PC2 + stream + disturbance,  data = NR_DATA,
                          control = PLNnetwork_param(min_ratio = 0.05,
                                                     penalize_diagonal = FALSE))
-# model_PLN_StARS <- model_PLN$getBestModel("StARS", stability = 0.8)
-model_PLN_StARS <- model_PLN$getModel(0.06570186)
-print(model_PLN_StARS$BIC)
+model_PLN_StARS <- model_PLN$getBestModel("StARS", stability = 0.8)
+# model_PLN_StARS <- model_PLN$getModel(0.06570186)
 
 model_PLN_StARS$plot_network()
 
@@ -170,9 +167,8 @@ pheatmap(B_log_scale,
 model_ZIPLN_pc1_pc2   <- ZIPLNnetwork(Abundance ~ PC1 + PC2 | 1,  data = NR_DATA,
                          control = ZIPLNnetwork_param(min_ratio = 0.05,
                                                       penalize_diagonal = FALSE))
-# model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getBestModel("StARS", stability = 0.8)
-model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getModel(0.05578001)
-print(model_ZIPLN_pc1_pc2_StARS$BIC)
+model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getBestModel("StARS", stability = 0.8)
+# model_ZIPLN_pc1_pc2_StARS <- model_ZIPLN_pc1_pc2$getModel(0.05578001)
 
 model_ZIPLN_pc1_pc2_StARS$plot_network()
 
@@ -191,9 +187,9 @@ pheatmap(model_ZIPLN_pc1_pc2_StARS$model_par$Pi,
 model_ZIPLN_pc1_pc2_disturbance   <- ZIPLNnetwork(Abundance ~ PC1 + PC2 + disturbance | 1,  data = NR_DATA,
                                                   control = ZIPLNnetwork_param(min_ratio = 0.05,
                                                       penalize_diagonal = FALSE))
-# model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
-model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getModel(0.04622685)
-print(model_ZIPLN_pc1_pc2_disturbance_StARS$BIC)
+model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getBestModel("StARS", stability = 0.8)
+# model_ZIPLN_pc1_pc2_disturbance_StARS <- model_ZIPLN_pc1_pc2_disturbance$getModel(0.04622685)
+
 
 model_ZIPLN_pc1_pc2_disturbance_StARS$plot_network()
 
@@ -212,9 +208,8 @@ pheatmap(model_ZIPLN_pc1_pc2_disturbance_StARS$model_par$Pi,
 model_ZIPLN  <- ZIPLNnetwork(Abundance ~ PC1 + PC2 + disturbance | stream,  data = NR_DATA,
                          control = ZIPLNnetwork_param(min_ratio = 0.05,
                                                       penalize_diagonal = FALSE))
-# model_ZIPLN_StARS <- model_ZIPLN$getBestModel("StARS", stability = 0.8)
-model_ZIPLN_StARS <- model_ZIPLN$getModel(0.03317969)
-print(model_ZIPLN_StARS$BIC)
+model_ZIPLN_StARS <- model_ZIPLN$getBestModel("StARS", stability = 0.8)
+# model_ZIPLN_StARS <- model_ZIPLN$getModel(0.03317969)
 
 model_ZIPLN_StARS$plot_network()
 
@@ -263,267 +258,3 @@ pheatmap(pi_proba_final,
 
 ```
 
-# Cross-validation measures for PLN-network and ZIPLN-network
-
-```{r cross-val-folds}
-K = 5
-set.seed(1)
-folds    = split(sample(1:nrow(NR_DATA)), rep(1:K, length = nrow(NR_DATA)))
-```
-
-```{r pln-cross-val-function}
-crossval <- function(formula, data, K = 5,
-                     folds    = split(sample(1:nrow(data)),
-                                      rep(1:K, length = nrow(data))),
-                     method   = c("PLN", "ZIPLN")
-  ) {
-    method <- match.arg(method)
-    Y     <- lapply(folds, function(fold) data$Abundance[fold, ])
-    Y_hat <- lapply(folds, function(test_set) {
-      # rep(0, length(test_set))
-      train_set <- setdiff(1:nrow(data), test_set)
-      model <- do.call(method, list(formula = eval(formula), data = data, subset = train_set))
-      predict(model, data[test_set, ], type = "response")
-    })
-    TP_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] == 0 & Y_hat[[k]] < 0.1)}))
-    TN_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] != 0 & Y_hat[[k]] > 0.1)}))
-    FP_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] != 0 & Y_hat[[k]] < 0.1)}))
-    FN_zero   <- unlist(lapply(1:K, function(k){sum(Y[[k]] == 0 & Y_hat[[k]] > 0.1)}))
-    precision <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + FP_zero[[k]])}))
-    recall    <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + FN_zero[[k]])}))
-    F1_score  <- unlist(lapply(1:K, function(k){TP_zero[[k]] / (TP_zero[[k]] + .5 * (FP_zero[[k]] + FN_zero) )}))
-
-    # err <- map2_dbl(Y_hat, Y, function(y_hat, y) mean((y_hat - y)^2))
-    err <- map2_dbl(Y_hat, Y, function(y_hat, y) Metrics::rmse(y_hat, y))
-    attr(err, "folds") <- folds
-    return(list("err" = err,
-                "TP_zero" = TP_zero, "TN_zero" = TN_zero,
-                "FP_zero" = FP_zero, "FN_zero" = FN_zero,
-                "precision" = precision, "recall" = recall,
-                "F1_score" = F1_score))
-  }
-```
-
-## PLN-network cross-validation
-
-```{r}
-cv_pln_out      <- crossval(Abundance ~ 1 + PC1 + PC2 + stream + disturbance,
-                         data = NR_DATA)
-print(median(cv_pln_out$err))
-
-cv_pln_out_pc1_pc2      <- crossval(Abundance ~ 1 + PC1 + PC2,
-                                    data = NR_DATA, folds = folds)
-print(median(cv_pln_out_pc1_pc2$err))
-
-cv_pln_out_pc1_pc2_disturbance      <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance,
-                                    data = NR_DATA, folds = folds)
-print(median(cv_pln_out_pc1_pc2_disturbance$err))
-```
-
-## ZIPLN-network cross-validation
-
-```{r}
-cv_pln_out_ZI   <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance | stream ,
-                            data = NR_DATA, method = "ZIPLN")
-print(median(cv_pln_out_ZI$err))
-
-cv_pln_out_ZI_pc1_pc2   <- crossval(Abundance ~ 1 + PC1 + PC2 | 1 ,
-                            data = NR_DATA, method = "ZIPLN", folds = folds)
-print(median(cv_pln_out_ZI_pc1_pc2$err))
-
-cv_pln_out_ZI_pc1_pc2_disturbance   <- crossval(Abundance ~ 1 + PC1 + PC2 + disturbance | 1 ,
-                                    data = NR_DATA, method = "ZIPLN", folds = folds)
-print(median(cv_pln_out_ZI_pc1_pc2_disturbance$err))
-```
-
-# Baseline methods for comparisons
-
-```{r baselines-data-formatting}
-nb_pc <- ncol(NR_COVARIATES) - 4
-
-NR_PCA <-
-  NR_COVARIATES %>%
-  PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
-
-NR_PCA_SCORES <- setNames(data.frame(NR_PCA$ind$coord), paste0("PC", 1:nb_pc))
-
-covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
-NR_DATA <- prepare_data(
-  counts     = NR_COUNTS,
-  covariates = covariates
-)
-covar_data <- NR_DATA %>% dplyr::select(c("PC1", "PC2", "disturbance", "stream"))
-```
-
-## BIC
-
-```{r get-BIC-function}
-get_BIC <- function(formula, covar_data, counts_data,
-                    method = c("poisson", "log_normal")){
-  method <- match.arg(method)
-  species   <- colnames(counts_data)
-
-  models <- lapply(species, function(S){
-                   Y    <- counts_data[, S]
-                   data <- cbind(covar_data, Y)
-                   colnames(data)[[length(colnames(data))]] <- "Abundance"
-                   if(method == "poisson"){
-                     glm(eval(formula), data = data,
-                         family = poisson(link = "log"))
-                   }else{
-                     log_data <- data
-                     log_data$Abundance <- log(1 + data$Abundance)
-                     glm(eval(formula), data = log_data,
-                         family = gaussian(link = "identity"))
-                   }
-  })
-
-  total_logLik <- sum(sapply(models, logLik))
-  total_k <- sum(sapply(models, function(m) length(coef(m))))
-  n_obs <- length(models[[1]]$y)  # assuming all same length
-  total_BIC <- 2 * total_logLik - total_k * log(n_obs)
-  return(total_BIC)
-}
-```
-
-```{r BIC-poisson}
-
-
-BIC_poisson <- get_BIC("Abundance ~ PC1 + PC2 + disturbance + stream", covar_data, NR_COUNTS,
-                       method = "poisson")
-print(BIC_poisson)
-
-BIC_poisson_pcs_dist <- get_BIC("Abundance ~ PC1 + PC2 + disturbance", covar_data, NR_COUNTS,
-                       method = "poisson")
-print(BIC_poisson_pcs_dist)
-
-BIC_poisson_pcs <- get_BIC("Abundance ~ PC1 + PC2", covar_data, NR_COUNTS,
-                       method = "poisson")
-print(BIC_poisson_pcs)
-```
-
-```{r BIC-log-normal}
-
-BIC_normal <- get_BIC("Abundance ~ PC1 + PC2 + disturbance + stream", covar_data, NR_COUNTS,
-                       method = "log_normal")
-print(BIC_poisson_pcs)
-
-BIC_normal_pcs_dist <- get_BIC("Abundance ~ PC1 + PC2 + disturbance", covar_data, NR_COUNTS,
-                       method = "log_normal")
-print(BIC_normal_pcs_dist)
-
-BIC_normal_pcs <- get_BIC("Abundance ~ PC1 + PC2", covar_data, NR_COUNTS,
-                           method = "log_normal")
-print(BIC_normal_pcs)
-```
-
-## Cross-validation
-
-```{r one-species-cross-val}
-crosspredict_one_species <- function(formula, folds, data,
-                                     method = c("poisson", "log_normal")){
-  method <- match.arg(method)
-
-  res <- lapply(folds, function(test_set) {
-                         train_set <- setdiff(1:nrow(data), test_set)
-                         if(method == "poisson"){
-                           tmp   <- data[train_set,]
-                           model <- glm(eval(formula),
-                                        data = tmp,
-                                        family = poisson(link = "log"))
-                           list(Y_hat = predict(model, data[test_set, ], type = "response"),
-                                Y_fit = model$fitted.values)
-                         }else{
-                           log_data <- data
-                           log_data$Abundance <- log(1 + data$Abundance)
-                           tmp   <- log_data[train_set,]
-                           model <- glm(eval(formula),
-                                        data = tmp,
-                                        family = gaussian(link = "identity"))
-                           list(Y_hat = exp(predict(model, data[test_set, ], type = "response")) - 1,
-                                Y_fit = model$fitted.values)
-                         }
-                         }
-                  )
-  Y_hat = lapply(res, function(x) x$Y_hat)
-  Y_fit = lapply(res, function(x) x$Y_fit)
-  return(list("Y_hat" = Y_hat, "Y_fit" = Y_fit))
-}
-```
-
-```{r overall-cross-val-baseline}
-
-cross_val_baseline <- function(formula, folds, covar_data, counts_data,
-                      method = c("poisson", "log_normal")){
-  method <- match.arg(method)
-
-  K <- length(folds)
-  all_Y_train <- lapply(1:5, f<- function(x) c())
-  all_Y_test     <- lapply(1:5, f<- function(x) c())
-  all_Y_fit <- lapply(1:5, f<- function(x) c())
-  all_Y_hat <- lapply(1:5, f<- function(x) c())
-  species   <- colnames(counts_data)
-
-  for(S in species){
-    Y    <- counts_data[, S]
-    data <- cbind(covar_data, Y)
-    colnames(data)[[length(colnames(data))]] <- "Abundance"
-    res <- crosspredict_one_species(formula, folds, data, method)
-    Y_hat <- res$Y_hat ; Y_fit <- res$Y_fit
-    for(k in 1:K){
-      train_set <- setdiff(1:nrow(counts_data), folds[[k]])
-      all_Y_train[[k]] <- rbind(all_Y_train[[k]], data$Abundance[train_set])
-      all_Y_test[[k]]  <- rbind(all_Y_test[[k]], data$Abundance[folds[[k]]])
-      all_Y_fit[[k]]   <- rbind(all_Y_fit[[k]], Y_fit[[k]])
-      all_Y_hat[[k]]   <- rbind(all_Y_hat[[k]], Y_hat[[k]])
-      # all_Y_hat[[k]] <- rbind(all_Y_hat[[k]], rep(0, length(folds[[k]])))
-    }
-  }
-
-  predict_err <- c() ; fit_err <- c()
-  for(k in 1:K){
-    predict_err <- c(predict_err, Metrics::rmse(all_Y_test[[k]], all_Y_hat[[k]] ))
-    fit_err     <- c(fit_err, Metrics::rmse(all_Y_train[[k]], all_Y_fit[[k]] ))
-  }
-  return(list("predict_err" = predict_err,
-              "fit_err"     = fit_err))
-}
-
-```
-
-```{r poisson-cross-val}
-cv_poisson_glm <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance + stream",
-                            folds, covar_data, NR_COUNTS, "poisson")
-print(median(cv_poisson_glm$fit_err))
-print(median(cv_poisson_glm$predict_err))
-
-
-cv_poisson_glm_pcs <- cross_val_baseline("Abundance ~ PC1 + PC2",
-                            folds, covar_data, NR_COUNTS, "poisson")
-print(median(cv_poisson_glm_pcs$fit_err))
-print(median(cv_poisson_glm_pcs$predict_err))
-
-
-cv_poisson_glm_pcs_disturbance <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance",
-                                folds, covar_data, NR_COUNTS, "poisson")
-print(median(cv_poisson_glm_pcs_disturbance$fit_err))
-print(median(cv_poisson_glm_pcs_disturbance$predict_err))
-
-```
-
-```{r log-normal-cross-val}
-cv_log_normal  <- cross_val_baseline("Abundance ~ PC1 + PC2 + disturbance + stream",
-                            folds, covar_data, NR_COUNTS, "log_normal")
-print(median(cv_log_normal$fit_err))
-print(median(cv_log_normal$predict_err))
-
-cv_log_normal_pcs  <- cross_val_baseline("Abundance ~ PC1 + PC2",
-                            folds, covar_data, NR_COUNTS, "log_normal")
-print(median(cv_log_normal_pcs$fit_err))
-print(median(cv_log_normal_pcs$predict_err))
-
-cv_log_normal_pcs_disturbance  <- cross_val_baseline("Abundance ~ PC1 + PC2+ disturbance",
-                                folds, covar_data, NR_COUNTS, "log_normal")
-print(median(cv_log_normal_pcs_disturbance$fit_err))
-print(median(cv_log_normal_pcs_disturbance$predict_err))
-```

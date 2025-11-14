@@ -2,7 +2,7 @@
 source("ZIPLN_simulations.R")
 set.seed(2)
 
-############################ Reference ZI values from real data - ZIPLN ########
+############################ Reference ZI values ###############################
 ##### SITES #####
 zi_mode_values_sites_ref = c(0.2, 0.4, 0.6)
 proba_mode_zi_values_sites_ref = c(0.3, 0.3, 0.4)
@@ -83,7 +83,7 @@ res <- grid_ZIPLN_simulation(n_simu, n_list, p_list, omega_structure_list,
                              mc.cores = max(1, parallel::detectCores() - 2))
 
 ############################ Saving the results and parameters #################
-write.csv(res, "ZIPLN_simulations_res/ZIPLN_simu_ref_BIC_2.csv")
+# write.csv(res, "ZIPLN_simulations_res/ZIPLN_simu_ref_BIC_2.csv")
 
 
 
